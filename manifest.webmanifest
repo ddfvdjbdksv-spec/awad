@@ -1,7 +1,7 @@
 {
-  "name": "أ. وائل مصري",
-  "short_name": "أ. وائل مصري",
-  "description": "نظام إدارة أ. وائل مصري المتكامل",
+  "name": "سنتر البنا",
+  "short_name": "سنتر البنا",
+  "description": "سنتر البنا لإعداد الأوائل — نظام الإدارة المتكامل",
   "start_url": "./",
   "display": "standalone",
   "orientation": "any",
@@ -46,14 +46,22 @@
       "label": "الصفحة الرئيسية"
     }
   ],
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "shortcuts": [
     {
       "name": "تسجيل الحضور",
       "short_name": "الحضور",
       "description": "فتح نظام تسجيل الحضور مباشرة",
       "url": "./#attendance",
-      "icons": [{ "src": "./app-icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "./app-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

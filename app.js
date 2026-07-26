@@ -15,141 +15,141 @@
 // ============================================================
 
 const RBAC = (() => {
-  const ROLES = {
-    admin:    'admin',
-    employee: 'employee',
-  };
+    const ROLES = {
+        admin: 'admin',
+        employee: 'employee',
+    };
 
-  const PASSWORDS = {
-    admin:    '20062006',
-    employee: '2446',
-  };
+    const PASSWORDS = {
+        admin: '20062006',
+        employee: '2446',
+    };
 
-  // الصلاحيات الممنوعة على الموظف
-  const EMPLOYEE_FORBIDDEN = [
-    'view_treasury', 'view_finance', 'view_payments',
-    'view_shifts', 'view_backup', 'view_analytics',
-    'view_certificates', 'view_hall', 'view_dashboard',
-    'view_platform_codes', 'view_platform_activation',
-    'view_daily_treasury',
-    'delete_student', 'delete_group', 'delete_exam',
-    'delete_payment', 'delete_expense',
-    'view_sync_details', 'view_api_data',
-    'manage_courses', 'manage_settings', 'manage_users',
-  ];
+    // الصلاحيات الممنوعة على الموظف
+    const EMPLOYEE_FORBIDDEN = [
+        'view_treasury', 'view_finance', 'view_payments',
+        'view_shifts', 'view_backup', 'view_analytics',
+        'view_certificates', 'view_hall', 'view_dashboard',
+        'view_platform_codes', 'view_platform_activation',
+        'view_daily_treasury',
+        'delete_student', 'delete_group', 'delete_exam',
+        'delete_payment', 'delete_expense',
+        'view_sync_details', 'view_api_data',
+        'manage_courses', 'manage_settings', 'manage_users',
+    ];
 
-  let _role = sessionStorage.getItem('app_role') || null;
+    let _role = sessionStorage.getItem('app_role') || null;
 
-  return {
-    PASSWORDS,
+    return {
+        PASSWORDS,
 
-    login(role) {
-      _role = role;
-      sessionStorage.setItem('app_role', role);
-    },
+        login(role) {
+            _role = role;
+            sessionStorage.setItem('app_role', role);
+        },
 
-    logout() {
-      _role = null;
-      sessionStorage.removeItem('app_role');
-    },
+        logout() {
+            _role = null;
+            sessionStorage.removeItem('app_role');
+        },
 
-    getRole() { return _role; },
+        getRole() { return _role; },
 
-    isAdmin()    { return _role === ROLES.admin; },
-    isEmployee() { return _role === ROLES.employee; },
-    isLoggedIn() { return _role !== null; },
+        isAdmin() { return _role === ROLES.admin; },
+        isEmployee() { return _role === ROLES.employee; },
+        isLoggedIn() { return _role !== null; },
 
-    can(permission) {
-      if (!_role) return false;
-      if (_role === ROLES.admin) return true;
-      return !EMPLOYEE_FORBIDDEN.includes(permission);
-    },
+        can(permission) {
+            if (!_role) return false;
+            if (_role === ROLES.admin) return true;
+            return !EMPLOYEE_FORBIDDEN.includes(permission);
+        },
 
-    canDelete() {
-      return _role === ROLES.admin;
-    },
+        canDelete() {
+            return _role === ROLES.admin;
+        },
 
-    // ─── تطبيق الصلاحيات على الـ sidebar ───────────────────
-    applyToUI() {
-      const role = _role;
-      if (!role) return;
+        // ─── تطبيق الصلاحيات على الـ sidebar ───────────────────
+        applyToUI() {
+            const role = _role;
+            if (!role) return;
 
-      // ── الـ nav items ──
-      document.querySelectorAll('.nav-item[data-rbac]').forEach(item => {
-        const rbac = item.getAttribute('data-rbac');
-        if (rbac === 'all') {
-          item.style.display = '';
-        } else if (rbac === 'admin') {
-          item.style.display = role === 'admin' ? '' : 'none';
-        } else if (rbac === 'employee') {
-          item.style.display = role === 'employee' ? '' : 'none';
-        }
-      });
+            // ── الـ nav items ──
+            document.querySelectorAll('.nav-item[data-rbac]').forEach(item => {
+                const rbac = item.getAttribute('data-rbac');
+                if (rbac === 'all') {
+                    item.style.display = '';
+                } else if (rbac === 'admin') {
+                    item.style.display = role === 'admin' ? '' : 'none';
+                } else if (rbac === 'employee') {
+                    item.style.display = role === 'employee' ? '' : 'none';
+                }
+            });
 
-      // ── الـ header badge ──
-      const userSpan = document.querySelector('.user-profile span');
-      if (userSpan) {
-        userSpan.textContent = role === 'admin' ? 'المشرف' : 'الموظف';
-      }
-      const avatarEl = document.querySelector('.user-profile .avatar');
-      if (avatarEl) {
-        avatarEl.textContent = role === 'admin' ? 'A' : 'E';
-        avatarEl.style.background = role === 'admin'
-          ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
-          : 'linear-gradient(135deg, #0ea5e9, #0284c7)';
-      }
+            // ── الـ header badge ──
+            const userSpan = document.querySelector('.user-profile span');
+            if (userSpan) {
+                userSpan.textContent = role === 'admin' ? 'المشرف' : 'الموظف';
+            }
+            const avatarEl = document.querySelector('.user-profile .avatar');
+            if (avatarEl) {
+                avatarEl.textContent = role === 'admin' ? 'A' : 'E';
+                avatarEl.style.background = role === 'admin'
+                    ? 'linear-gradient(135deg, #4f46e5, #7c3aed)'
+                    : 'linear-gradient(135deg, #0ea5e9, #0284c7)';
+            }
 
-      // ── إخفاء أزرار الحذف للموظف ──
-      if (role === 'employee') {
-        // أزرار الحذف في جداول الطلاب — يُخفيها CSS hook
-        document.body.classList.add('rbac-employee');
-        document.body.classList.remove('rbac-admin');
-      } else {
-        document.body.classList.add('rbac-admin');
-        document.body.classList.remove('rbac-employee');
-      }
-    },
+            // ── إخفاء أزرار الحذف للموظف ──
+            if (role === 'employee') {
+                // أزرار الحذف في جداول الطلاب — يُخفيها CSS hook
+                document.body.classList.add('rbac-employee');
+                document.body.classList.remove('rbac-admin');
+            } else {
+                document.body.classList.add('rbac-admin');
+                document.body.classList.remove('rbac-employee');
+            }
+        },
 
-    // ─── الوصول المباشر للـ sections (حماية Backend) ──────
-    canViewSection(sectionName) {
-      if (!_role) return false;
-      if (_role === ROLES.admin) return true;
-      // الأقسام المحظورة على الموظف
-      const forbidden = [
-        'dashboard', 'payments', 'daily-treasury', 'shifts',
-        'backup', 'analytics', 'certificates', 'hall',
-        'platform-codes', 'platform-activation',
-      ];
-      return !forbidden.includes(sectionName);
-    },
+        // ─── الوصول المباشر للـ sections (حماية Backend) ──────
+        canViewSection(sectionName) {
+            if (!_role) return false;
+            if (_role === ROLES.admin) return true;
+            // الأقسام المحظورة على الموظف
+            const forbidden = [
+                'dashboard', 'payments', 'daily-treasury', 'shifts',
+                'backup', 'analytics', 'certificates', 'hall',
+                'platform-codes', 'platform-activation',
+            ];
+            return !forbidden.includes(sectionName);
+        },
 
-    // ─── تسجيل في Activity Log ──────────────────────────────
-    log(action, details = '') {
-      const entry = {
-        id: Date.now(),
-        role: _role,
-        action,
-        details,
-        time: new Date().toISOString(),
-      };
-      try {
-        const logs = JSON.parse(localStorage.getItem('activity_log') || '[]');
-        logs.unshift(entry);
-        if (logs.length > 500) logs.splice(500);
-        localStorage.setItem('activity_log', JSON.stringify(logs));
-      } catch(e) {}
-    },
-  };
+        // ─── تسجيل في Activity Log ──────────────────────────────
+        log(action, details = '') {
+            const entry = {
+                id: Date.now(),
+                role: _role,
+                action,
+                details,
+                time: new Date().toISOString(),
+            };
+            try {
+                const logs = JSON.parse(localStorage.getItem('activity_log') || '[]');
+                logs.unshift(entry);
+                if (logs.length > 500) logs.splice(500);
+                localStorage.setItem('activity_log', JSON.stringify(logs));
+            } catch (e) { }
+        },
+    };
 })();
 
 // ─── RBAC Guard للحذف ────────────────────────────────────────
 function rbacGuardDelete(actionName = 'الحذف') {
-  if (!RBAC.canDelete()) {
-    showNotification(`⛔ الموظف لا يملك صلاحية ${actionName}. يرجى مراجعة المشرف.`, 'error');
-    RBAC.log('delete_denied', actionName);
-    return false;
-  }
-  return true;
+    if (!RBAC.canDelete()) {
+        showNotification(`⛔ الموظف لا يملك صلاحية ${actionName}. يرجى مراجعة المشرف.`, 'error');
+        RBAC.log('delete_denied', actionName);
+        return false;
+    }
+    return true;
 }
 
 // تصدير عالمي
@@ -159,9 +159,9 @@ window.RBAC = RBAC;
 
 // ─── CSS للموظف: إخفاء أزرار الحذف ──────────────────────────
 (function injectRBACStyles() {
-  const style = document.createElement('style');
-  style.id = 'rbac-styles';
-  style.textContent = `
+    const style = document.createElement('style');
+    style.id = 'rbac-styles';
+    style.textContent = `
     /* إخفاء أزرار الحذف للموظف */
     body.rbac-employee .btn-delete,
     body.rbac-employee [onclick*="deleteStudent"],
@@ -184,7 +184,7 @@ window.RBAC = RBAC;
       transform: scale(1.05);
     }
   `;
-  document.head.appendChild(style);
+    document.head.appendChild(style);
 })();
 
 // selectLoginRole: محذوفة — النظام يتعرف على الدور من الباسورد تلقائياً
@@ -195,12 +195,58 @@ window.RBAC = RBAC;
 // بالكامل — كانت وظائف مساعدة لقسم "مزامنة المنصة للموظف" اللي اعتمد على Firebase
 
 /**
- * مستر عبد الله عواد v2.0 - Core Intelligence Engine
+ * نظام إدارة الدروس v2.0 - Core Intelligence Engine
  * Specialized for Mr. Mohamed's Education Center
  */
 
 // --- Database & Persistence ---
 // --- Database & Persistence ---
+function slugifyAppTenantPart(value) {
+    return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 80);
+}
+
+function resolveAppTenantId() {
+    const initialData = window.edu_initial_data || {};
+    const initialSettings = initialData.settings || {};
+    const profile = initialSettings.appProfile || initialData.appProfile || {};
+    const explicit = window.CLOUD_SYNC_TENANT_ID || initialData.cloudSyncTenantId || initialData.tenantId || initialSettings.cloudSyncTenantId;
+    const fromProfile = [
+        profile.centerName,
+        profile.teacherName,
+        profile.specialization
+    ].map(slugifyAppTenantPart).filter(Boolean).join('-');
+    const fallback = slugifyAppTenantPart(location.hostname + '-' + location.pathname.replace(/\/[^/]*$/, '')) || 'default';
+    return slugifyAppTenantPart(explicit) || fromProfile || fallback;
+}
+
+const APP_TENANT_ID = resolveAppTenantId();
+window.APP_TENANT_ID = APP_TENANT_ID;
+window.CLOUD_SYNC_TENANT_ID = window.CLOUD_SYNC_TENANT_ID || APP_TENANT_ID;
+
+(function resetLocalAppStateWhenTenantChanges() {
+    const key = 'edu_active_tenant_id';
+    let previous = null;
+    try { previous = localStorage.getItem(key); } catch (e) { }
+    if (previous && previous !== APP_TENANT_ID) {
+        const prefixes = [
+            'edu_', '_fallback_', '_defaultGroupsSeeded', 'dailyTreasury',
+            'dt_', 'treasuryArchiveHour', 'activity_log'
+        ];
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const storageKey = localStorage.key(i);
+            if (storageKey && prefixes.some(prefix => storageKey.startsWith(prefix))) {
+                localStorage.removeItem(storageKey);
+            }
+        }
+    }
+    try { localStorage.setItem(key, APP_TENANT_ID); } catch (e) { }
+})();
+
 let currentGrade = localStorage.getItem('edu_active_grade') || null;
 let currentGroupId = localStorage.getItem('edu_active_group') || null;
 
@@ -255,7 +301,7 @@ const StorageEngine = {
     db: null,
     async init() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("EduMasterLargeDB", 5);
+            const request = indexedDB.open("EduMasterLargeDB_" + APP_TENANT_ID, 5);
             request.onerror = (e) => reject("IndexedDB error: " + e.target.errorCode);
             request.onupgradeneeded = (e) => {
                 const db = e.target.result;
@@ -398,6 +444,9 @@ const StorageEngine = {
                 }
             }
         }
+        if (typeof CloudSync !== 'undefined' && CloudSync.isReady && CloudSync.isReady()) {
+            try { CloudSync.onLocalSave(storeName); } catch (e) { console.warn('[CloudSync] onLocalSave failed', e); }
+        }
     },
 
     async delete(storeName, id) {
@@ -406,7 +455,28 @@ const StorageEngine = {
         const transaction = this.db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
         store.delete(id);
-        return new Promise((resolve) => transaction.oncomplete = () => resolve());
+        await new Promise((resolve) => transaction.oncomplete = () => resolve());
+        if (typeof CloudSync !== 'undefined' && CloudSync.deleteRecord) {
+            try { CloudSync.deleteRecord(storeName, id); } catch (e) { console.warn('[CloudSync] deleteRecord failed', e); }
+        } else if (typeof CloudSync !== 'undefined' && CloudSync.isReady && CloudSync.isReady()) {
+            try { CloudSync.onLocalSave(storeName); } catch (e) { console.warn('[CloudSync] onLocalSave failed', e); }
+        }
+    },
+
+    async clear(storeName) {
+        if (!this.db) await this.init();
+        if (!this.db || !this.db.objectStoreNames.contains(storeName)) return;
+        const transaction = this.db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.clear();
+        await new Promise((resolve) => {
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => resolve();
+            transaction.onabort = () => resolve();
+        });
+        if (typeof CloudSync !== 'undefined' && CloudSync.isReady && CloudSync.isReady()) {
+            try { CloudSync.onLocalSave(storeName); } catch (e) { console.warn('[CloudSync] onLocalSave failed', e); }
+        }
     },
 
     async get(storeName, id) {
@@ -471,7 +541,7 @@ const db = {
         const grade = currentGrade || 'default';
         const group = currentGroupId || 'all';
         const key = group === 'all' ? grade : `${grade}_${group}`;
-        
+
         if (!this._settings[key]) {
             const legacy = this._settings[grade];
             this._settings[key] = legacy ? JSON.parse(JSON.stringify(legacy)) : {
@@ -508,7 +578,7 @@ const db = {
 
         // تطبيع currentGrade: لو محفوظ كـ gradesList ID رقمي (مثل 303) حوّله لـ systemCode (مثل '3')
         if (currentGrade) {
-            const TABLE = {'301':'1','302':'2','303':'3','201':'prep1','202':'prep2','203':'prep3','101':'prim1','102':'prim2','103':'prim3','104':'prim4','105':'prim5','106':'prim6'};
+            const TABLE = { '301': '1', '302': '2', '303': '3', '201': 'prep1', '202': 'prep2', '203': 'prep3', '101': 'prim1', '102': 'prim2', '103': 'prim3', '104': 'prim4', '105': 'prim5', '106': 'prim6' };
             if (TABLE[currentGrade]) {
                 currentGrade = TABLE[currentGrade];
                 localStorage.setItem('edu_active_grade', currentGrade);
@@ -551,7 +621,7 @@ const db = {
             setTimeout(() => location.reload(), 300);
             return;
         }
-        
+
         // Mark as initialized even if no hydration happened
         if (!hasEverInitialized) {
             localStorage.setItem('edu_app_initialized', 'true');
@@ -586,6 +656,7 @@ const db = {
         this.students = await StorageEngine.getAll('students');
         this.attendance = await StorageEngine.getAll('attendance');
         this.payments = await StorageEngine.getAll('payments');
+        this.expenses = await StorageEngine.getAll('expenses');
         this.exams = await StorageEngine.getAll('exams');
         this.scores = await StorageEngine.getAll('scores');
         this.dailyTreasuryArchives = await StorageEngine.getAll('dailyTreasuryArchives');
@@ -615,27 +686,33 @@ const db = {
             window.gradesList = gradesList;
         }
 
-        // ── ضمان المجاميع الثابتة في كل load ──────────────────────
-        // الـ 6 مجاميع (g2a-g2c, g3a-g3c) لازم موجودة دايماً
-        const bookingIds = ['g2a','g2b','g2c','g3a','g3b','g3c'];
-        const missingGroups = bookingIds.filter(bid => !this.groups.find(g => String(g.id) === bid));
-        if (missingGroups.length > 0) {
-            const DEFS = [
-                { id:'g2a', name:'مجموعة A — ثاني ثانوي', days:'السبت والثلاثاء',  time:'٤:٠٠ م — ٦:٠٠ م', grade:'2', price:350 },
-                { id:'g2b', name:'مجموعة B — ثاني ثانوي', days:'الأحد والأربعاء',  time:'٥:٠٠ م — ٧:٠٠ م', grade:'2', price:350 },
-                { id:'g2c', name:'مجموعة C — ثاني ثانوي', days:'الاثنين والخميس', time:'٦:٠٠ م — ٨:٠٠ م', grade:'2', price:350 },
-                { id:'g3a', name:'مجموعة A — ثالث ثانوي', days:'السبت والثلاثاء',  time:'٢:٠٠ م — ٤:٠٠ م', grade:'3', price:400 },
-                { id:'g3b', name:'مجموعة B — ثالث ثانوي', days:'الأحد والأربعاء',  time:'٣:٠٠ م — ٥:٠٠ م', grade:'3', price:400 },
-                { id:'g3c', name:'مجموعة C — ثالث ثانوي', days:'الاثنين والخميس', time:'٧:٠٠ م — ٩:٠٠ م', grade:'3', price:400 },
-            ];
-            const toAdd = [];
-            for (const def of DEFS) {
-                if (!this.groups.find(g => String(g.id) === def.id)) {
-                    this.groups.push({ ...def });
-                    toAdd.push({ ...def });
+        // ── إضافة المجاميع الافتراضية مرة واحدة فقط عند أول تشغيل ──
+        // ملحوظة: كانت هذه المجاميع (g2a-g2c, g3a-g3c) تُعاد إضافتها في
+        // كل تحميل حتى لو حذفها المستخدم عمداً، وهو ما كان يمنع حذفها
+        // فعلياً بشكل دائم. الآن تُزرع مرة واحدة فقط لأول تشغيل، وبعد
+        // ذلك يبقى قرار حذفها للمستخدم نهائياً دون إعادة إنشائها.
+        if (!localStorage.getItem('_defaultGroupsSeeded')) {
+            const bookingIds = ['g2a', 'g2b', 'g2c', 'g3a', 'g3b', 'g3c'];
+            const missingGroups = bookingIds.filter(bid => !this.groups.find(g => String(g.id) === bid));
+            if (missingGroups.length > 0) {
+                const DEFS = [
+                    { id: 'g2a', name: 'مجموعة A — ثاني ثانوي', days: 'السبت والثلاثاء', time: '٤:٠٠ م — ٦:٠٠ م', grade: '2', price: 350 },
+                    { id: 'g2b', name: 'مجموعة B — ثاني ثانوي', days: 'الأحد والأربعاء', time: '٥:٠٠ م — ٧:٠٠ م', grade: '2', price: 350 },
+                    { id: 'g2c', name: 'مجموعة C — ثاني ثانوي', days: 'الاثنين والخميس', time: '٦:٠٠ م — ٨:٠٠ م', grade: '2', price: 350 },
+                    { id: 'g3a', name: 'مجموعة A — ثالث ثانوي', days: 'السبت والثلاثاء', time: '٢:٠٠ م — ٤:٠٠ م', grade: '3', price: 400 },
+                    { id: 'g3b', name: 'مجموعة B — ثالث ثانوي', days: 'الأحد والأربعاء', time: '٣:٠٠ م — ٥:٠٠ م', grade: '3', price: 400 },
+                    { id: 'g3c', name: 'مجموعة C — ثالث ثانوي', days: 'الاثنين والخميس', time: '٧:٠٠ م — ٩:٠٠ م', grade: '3', price: 400 },
+                ];
+                const toAdd = [];
+                for (const def of DEFS) {
+                    if (!this.groups.find(g => String(g.id) === def.id)) {
+                        this.groups.push({ ...def });
+                        toAdd.push({ ...def });
+                    }
                 }
+                if (toAdd.length) await StorageEngine.save('groups', toAdd);
             }
-            if (toAdd.length) await StorageEngine.save('groups', toAdd);
+            localStorage.setItem('_defaultGroupsSeeded', '1');
         }
 
         if (typeof renderStudents === 'function') renderStudents();
@@ -661,6 +738,11 @@ const db = {
         if (this.dailyTreasuryLastArchiveDate) localStorage.setItem('dailyTreasuryLastArchiveDate', this.dailyTreasuryLastArchiveDate);
 
         if (typeof updateDataInFile === 'function') updateDataInFile();
+
+        // ── مزامنة سحابية (Firestore) — best effort، لا توقف أي شيء لو فشلت ──
+        if (typeof CloudSync !== 'undefined' && CloudSync.isReady && CloudSync.isReady()) {
+            try { CloudSync.onLocalSave(modifiedTable); } catch (e) { console.warn('[CloudSync] onLocalSave failed', e); }
+        }
     }
 };
 
@@ -738,8 +820,8 @@ function buildRecordIdentity(table, record) {
 
     // أرشيف العهدة اليومية: تطابق بالتاريخ + المجموعة + اسم الجلسة
     if (table === 'dailyTreasuryArchives') {
-        const date    = normalizeIdentityValue(record.date || '');
-        const grade   = normalizeIdentityValue(record.grade || '');
+        const date = normalizeIdentityValue(record.date || '');
+        const grade = normalizeIdentityValue(record.grade || '');
         const groupId = normalizeIdentityValue(record.groupId || '');
         const session = normalizeIdentityValue(record.sessionName || '');
         if (date) return `${table}:natural:${date}|${grade}|${groupId}|${session}`;
@@ -778,7 +860,7 @@ function buildRecordIdentity(table, record) {
         const amount = pickFirstValue(record, ['amount', 'value', 'paid', 'total']);
         const kind = pickFirstValue(record, ['type', 'status', 'examId', 'handoutId', 'description', 'note', 'title', 'reason']);
         const extra = pickFirstValue(record, ['cycleId', 'sessionId', 'month', 'grade', 'groupId']);
-        
+
         // للحضور: أضف التوقيت الدقيق أو الوقت لجعل كل حضور فريد
         if (table === 'attendance') {
             const timestamp = pickFirstValue(record, ['timestamp', 'time', 'checkInTime', 'checkedAt']);
@@ -788,7 +870,7 @@ function buildRecordIdentity(table, record) {
                 return `${table}:natural:${normalizeIdentityValue(studentId)}|${normalizeIdentityValue(date)}|${normalizeIdentityValue(timestamp || uniqueId)}`;
             }
         }
-        
+
         if (studentId || date || amount || kind || extra) {
             return `${table}:natural:${normalizeIdentityValue(studentId)}|${normalizeIdentityValue(date)}|${normalizeIdentityValue(amount)}|${normalizeIdentityValue(kind)}|${normalizeIdentityValue(extra)}`;
         }
@@ -923,7 +1005,7 @@ async function hydrateDatabase(dataBlob) {
         }
 
         // Strategy 1: JSON مباشر
-        try { processedData = JSON.parse(trimmed); } catch (_) {}
+        try { processedData = JSON.parse(trimmed); } catch (_) { }
 
         // Strategy 2: window.edu_initial_data = {...};
         if (!processedData) {
@@ -933,18 +1015,18 @@ async function hydrateDatabase(dataBlob) {
                     const jsonStr = m[1].substring(0, m[1].lastIndexOf('}') + 1).trim();
                     processedData = JSON.parse(jsonStr);
                 }
-            } catch (_) {}
+            } catch (_) { }
         }
 
         // Strategy 3: أول { ... } بلوك
         if (!processedData) {
             try {
                 const first = trimmed.indexOf('{');
-                const last  = trimmed.lastIndexOf('}');
+                const last = trimmed.lastIndexOf('}');
                 if (first !== -1 && last > first) {
                     processedData = JSON.parse(trimmed.substring(first, last + 1));
                 }
-            } catch (_) {}
+            } catch (_) { }
         }
 
         // Strategy 4: مصفوفة []
@@ -952,7 +1034,7 @@ async function hydrateDatabase(dataBlob) {
             try {
                 const arr = JSON.parse(trimmed);
                 if (Array.isArray(arr)) processedData = { students: arr };
-            } catch (_) {}
+            } catch (_) { }
         }
     }
 
@@ -1183,18 +1265,18 @@ const initialData = window.edu_initial_data || {};
 
 // ─── الـ 12 مرحلة الثابتة - لا تُحذف ولا تتغير IDs بتاعتها ───
 const DEFAULT_GRADES = [
-    { id: 101, name: 'الأول الابتدائي',   icon: 'fa-child' },
-    { id: 102, name: 'الثاني الابتدائي',  icon: 'fa-child' },
-    { id: 103, name: 'الثالث الابتدائي',  icon: 'fa-child' },
-    { id: 104, name: 'الرابع الابتدائي',  icon: 'fa-book-open' },
-    { id: 105, name: 'الخامس الابتدائي',  icon: 'fa-book-open' },
-    { id: 106, name: 'السادس الابتدائي',  icon: 'fa-book-open' },
-    { id: 201, name: 'الأول الإعدادي',    icon: 'fa-user-graduate' },
-    { id: 202, name: 'الثاني الإعدادي',   icon: 'fa-user-graduate' },
-    { id: 203, name: 'الثالث الإعدادي',   icon: 'fa-user-graduate' },
-    { id: 301, name: 'الأول الثانوي',     icon: 'fa-university' },
-    { id: 302, name: 'الثاني الثانوي',    icon: 'fa-flask' },
-    { id: 303, name: 'الثالث الثانوي',    icon: 'fa-graduation-cap' },
+    { id: 101, name: 'الأول الابتدائي', icon: 'fa-child' },
+    { id: 102, name: 'الثاني الابتدائي', icon: 'fa-child' },
+    { id: 103, name: 'الثالث الابتدائي', icon: 'fa-child' },
+    { id: 104, name: 'الرابع الابتدائي', icon: 'fa-book-open' },
+    { id: 105, name: 'الخامس الابتدائي', icon: 'fa-book-open' },
+    { id: 106, name: 'السادس الابتدائي', icon: 'fa-book-open' },
+    { id: 201, name: 'الأول الإعدادي', icon: 'fa-user-graduate' },
+    { id: 202, name: 'الثاني الإعدادي', icon: 'fa-user-graduate' },
+    { id: 203, name: 'الثالث الإعدادي', icon: 'fa-user-graduate' },
+    { id: 301, name: 'الأول الثانوي', icon: 'fa-university' },
+    { id: 302, name: 'الثاني الثانوي', icon: 'fa-flask' },
+    { id: 303, name: 'الثالث الثانوي', icon: 'fa-graduation-cap' },
 ];
 
 /**
@@ -1211,7 +1293,7 @@ function buildGradesList(stored) {
     if (Array.isArray(stored)) {
         const defaultNames = new Set(DEFAULT_GRADES.map(d => d.name.trim()));
         stored.forEach(s => {
-            const isDefaultById   = DEFAULT_GRADES.some(d => String(d.id) === String(s.id));
+            const isDefaultById = DEFAULT_GRADES.some(d => String(d.id) === String(s.id));
             const isDefaultByName = s.name && defaultNames.has(s.name.trim());
             if (!isDefaultById && !isDefaultByName) result.push(s);
         });
@@ -1220,7 +1302,7 @@ function buildGradesList(stored) {
 }
 
 let _storedGrades = null;
-try { _storedGrades = JSON.parse(localStorage.getItem('edu_grades_list')); } catch(e) {}
+try { _storedGrades = JSON.parse(localStorage.getItem('edu_grades_list')); } catch (e) { }
 let gradesList = buildGradesList(_storedGrades || (initialData && initialData.gradesList));
 // احفظ الـ 12 مرة واحدة لو مش موجودين أصلاً
 localStorage.setItem('edu_grades_list', JSON.stringify(gradesList));
@@ -1302,7 +1384,7 @@ async function selectGrade(gradeId) {
     // ── عزل: مسح السياق القديم ───────────────────────────────
     SessionManager.syncGlobals();   // التنقل بين الصفوف لا يلغي جلسة المجموعة القديمة
     currentGroupId = null;
-    activePortalGroupId  = null;
+    activePortalGroupId = null;
     activePortalGroupIds = [];
     localStorage.removeItem('edu_active_group');
 
@@ -1387,33 +1469,33 @@ function _syncSessionUI() {
     const active = SessionManager.isActive();
     const paused = SessionManager.isPaused();
 
-    const startBtn  = document.getElementById('start-session-btn');
-    const jointBtn  = document.getElementById('start-joint-session-btn');
-    const pauseBtn  = document.getElementById('pause-session-btn');
+    const startBtn = document.getElementById('start-session-btn');
+    const jointBtn = document.getElementById('start-joint-session-btn');
+    const pauseBtn = document.getElementById('pause-session-btn');
     const resumeBtn = document.getElementById('resume-session-btn');
-    const endBtn    = document.getElementById('end-session-btn');
-    const badge     = document.getElementById('session-status-badge');
+    const endBtn = document.getElementById('end-session-btn');
+    const badge = document.getElementById('session-status-badge');
     const container = document.getElementById('current-session-container');
 
     if (!startBtn) return; // قسم الحضور مش مفتوح
 
     if (!active) {
         // لا توجد جلسة → وضع البداية
-        startBtn.style.display  = 'inline-flex';
+        startBtn.style.display = 'inline-flex';
         if (jointBtn) jointBtn.style.display = 'inline-flex';
-        pauseBtn.style.display  = 'none';
+        pauseBtn.style.display = 'none';
         resumeBtn.style.display = 'none';
-        endBtn.style.display    = 'none';
-        if (badge)     badge.style.display     = 'none';
+        endBtn.style.display = 'none';
+        if (badge) badge.style.display = 'none';
         if (container) container.style.display = 'none';
     } else {
         // جلسة نشطة → وضع التشفير
-        startBtn.style.display  = 'none';
+        startBtn.style.display = 'none';
         if (jointBtn) jointBtn.style.display = 'none';
-        pauseBtn.style.display  = paused ? 'none' : 'inline-flex';
+        pauseBtn.style.display = paused ? 'none' : 'inline-flex';
         resumeBtn.style.display = paused ? 'inline-flex' : 'none';
-        endBtn.style.display    = 'inline-flex';
-        if (badge)     badge.style.display     = 'block';
+        endBtn.style.display = 'inline-flex';
+        if (badge) badge.style.display = 'block';
         if (container) container.style.display = 'block';
         renderSessionTable();
     }
@@ -1576,23 +1658,23 @@ const SessionManager = {
     current() { return this._get(currentGrade, currentGroupId); },
 
     // ── getters مباشرة لتقصير الكود ───────────────────────────
-    isActive()   { return this.current().isActive;   },
-    isPaused()   { return this.current().isPaused;   },
+    isActive() { return this.current().isActive; },
+    isPaused() { return this.current().isPaused; },
     attendance() { return this.current().attendance; },
 
     // ── بدء جلسة جديدة — يمسح القديمة أولاً ─────────────────
     start() {
         const k = this._key(currentGrade, currentGroupId);
         this._store[k] = {
-            isActive:   true,
-            isPaused:   false,
+            isActive: true,
+            isPaused: false,
             attendance: [],
-            grade:      String(currentGrade),
-            groupId:    String(currentGroupId),
+            grade: String(currentGrade),
+            groupId: String(currentGroupId),
         };
         // مزامنة المتغيرات العامة للكود القديم
-        isLessonCodingActive     = true;
-        isLessonCodingPaused     = false;
+        isLessonCodingActive = true;
+        isLessonCodingPaused = false;
         currentSessionAttendance = [];
         this._save();
     },
@@ -1600,14 +1682,14 @@ const SessionManager = {
     // ── إيقاف مؤقت ───────────────────────────────────────────
     pause() {
         this.current().isPaused = true;
-        isLessonCodingPaused    = true;
+        isLessonCodingPaused = true;
         this._save();
     },
 
     // ── استئناف ──────────────────────────────────────────────
     resume() {
         this.current().isPaused = false;
-        isLessonCodingPaused    = false;
+        isLessonCodingPaused = false;
         this._save();
     },
 
@@ -1615,8 +1697,8 @@ const SessionManager = {
     end() {
         const k = this._key(currentGrade, currentGroupId);
         delete this._store[k];
-        isLessonCodingActive     = false;
-        isLessonCodingPaused     = false;
+        isLessonCodingActive = false;
+        isLessonCodingPaused = false;
         currentSessionAttendance = [];
         this._save();
     },
@@ -1625,7 +1707,7 @@ const SessionManager = {
     addStudent(studentObj) {
         const s = this.current();
         if (!s.isActive) return false;
-        if (String(studentObj.grade)   !== String(s.grade)  ||
+        if (String(studentObj.grade) !== String(s.grade) ||
             String(studentObj.groupId) !== String(s.groupId)) return false;
         if (s.attendance.some(x => x.id === studentObj.id)) return false;
         s.attendance.push(studentObj);
@@ -1647,8 +1729,8 @@ const SessionManager = {
     resetCurrent() {
         const k = this._key(currentGrade, currentGroupId);
         delete this._store[k];
-        isLessonCodingActive     = false;
-        isLessonCodingPaused     = false;
+        isLessonCodingActive = false;
+        isLessonCodingPaused = false;
         currentSessionAttendance = [];
         this._save();
     },
@@ -1657,8 +1739,8 @@ const SessionManager = {
     //    تُستدعى عند الانتقال للمجموعة (لو فيها جلسة محفوظة)
     syncGlobals() {
         const s = this.current();
-        isLessonCodingActive     = s.isActive;
-        isLessonCodingPaused     = s.isPaused;
+        isLessonCodingActive = s.isActive;
+        isLessonCodingPaused = s.isPaused;
         currentSessionAttendance = s.attendance;
     },
 };
@@ -1666,21 +1748,21 @@ SessionManager._load();
 window.SessionManager = SessionManager;
 
 // ── Global state vars (يتم مزامنتها مع SessionManager) ──────────
-let isLessonCodingActive     = false;
-let isLessonCodingPaused     = false;
+let isLessonCodingActive = false;
+let isLessonCodingPaused = false;
 let currentSessionAttendance = [];
 const waTemplates = JSON.parse(localStorage.getItem('edu_wa_templates')) || {
     welcome:
-`السلام عليكم ورحمة الله وبركاته،
+        `السلام عليكم ورحمة الله وبركاته،
 يسرنا إعلامكم بأنه قد تم تسجيل حضور ابنكم/ابنتكم الطالب/ـة *[[name]]* بنجاح اليوم.
 📌 إجمالي نقاط التميز المُجمّعة: [[points]] نقطة 💎
 نتمنى له/ـا حضوراً منتظماً ومستوى دراسياً متميزاً، ونشكر لسيادتكم متابعتكم المستمرة.`,
     absence:
-`السلام عليكم ورحمة الله وبركاته،
+        `السلام عليكم ورحمة الله وبركاته،
 نحيط سيادتكم علماً بغياب الطالب/ـة *[[name]]* عن الحصة الدراسية اليوم.
 نرجو التكرم بمتابعة سبب الغياب، حرصاً منا على انتظام مستواه/ـا الدراسي وتحقيق أفضل النتائج.`,
     payment:
-`السلام عليكم ورحمة الله وبركاته،
+        `السلام عليكم ورحمة الله وبركاته،
 يسرنا إفادتكم بأنه قد تم استلام اشتراك هذا الشهر للطالب/ـة *[[name]]* بنجاح.
 شاكرين لسيادتكم حسن تعاونكم وثقتكم الدائمة، ونؤكد حرصنا على تقديم أفضل مستوى تعليمي.`
 };
@@ -1740,7 +1822,7 @@ function showSection(sectionId, btnEl) {
         'receipts': 'وصولات الدفع', 'platform-activation': 'تفعيل كورسات المنصة',
         'employee-platform-sync': 'مزامنة المنصة التعليمية'
     };
-    document.getElementById('page-title').innerText = titles[sectionId] || 'مستر عبد الله عواد';
+    document.getElementById('page-title').innerText = titles[sectionId] || 'نظام إدارة الدروس';
 
     if (sectionId === 'shifts') renderShifts();
 
@@ -1752,6 +1834,7 @@ function showSection(sectionId, btnEl) {
         SessionManager.syncGlobals();
         _syncSessionUI();
 
+        startQRScanner();
         renderQuickAttendance();
         renderSessionTable();
         const today = new Date().toISOString().split('T')[0];
@@ -1785,10 +1868,7 @@ function showSection(sectionId, btnEl) {
 }
 
 function stopAllCameraScanners() {
-    // html5QrCode (شاشة الحضور) لها طابور تسلسلي خاص لتفادي تعارض التشغيل/الإيقاف
-    stopQRScanner();
-
-    [examScanner, searchScanner, portalScanner, fastGradingScanner].forEach(s => {
+    [html5QrCode, examScanner, searchScanner, portalScanner, fastGradingScanner].forEach(s => {
         if (s) {
             try {
                 // Robust stop: Check state or just try to stop
@@ -1944,7 +2024,6 @@ function startExamScanner() {
     if (!examScanner) {
         examScanner = new Html5Qrcode("exam-reader");
     }
-    if (examScanner.isScanning) return; // شغالة بالفعل — تجنّب فتح جلسة كاميرا مكررة
 
     examScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
         (decodedText) => {
@@ -2110,6 +2189,9 @@ async function handleStudentSubmit(printAfter = false) {
         db.students.push(student);
         await StorageEngine.save('students', student);
 
+        // تشغيل المزامنة السحابية في الخلفية دون تعطيل واجهة المستخدم
+        waitForCloudTableSync('students').catch(err => console.warn('[CloudSync] student background sync warning:', err));
+
         studentListPage = 0;
         renderStudents();
 
@@ -2130,6 +2212,7 @@ async function handleStudentSubmit(printAfter = false) {
                 };
                 db.attendance.push(att);
                 await StorageEngine.save('attendance', att);
+                waitForCloudTableSync('attendance').catch(err => console.warn('[CloudSync] attendance background sync warning:', err));
             }
         }
 
@@ -2140,7 +2223,7 @@ async function handleStudentSubmit(printAfter = false) {
         document.getElementById('std-group').value = '';
 
         toggleModal('student-modal', false);
-        showNotification('تم إضافة الطالب بنجاح');
+        showNotification('تم إضافة الطالب وحفظه بنجاح', 'success');
 
         // ✅ لو المستخدم ضغط "حفظ وطباعة الكود" — نفتح الطباعة فورًا لنفس الطالب
         if (printAfter && typeof generatePrintableIDCards === 'function') {
@@ -2219,11 +2302,11 @@ async function renderStudents() {
             <td>
                 <div style="display:flex; gap:5px;">
                     <button class="btn" title="طباعة الكارت" style="padding:5px 10px; background:var(--primary); color:white;" onclick="generatePrintCard(${s.id})"><i class="fas fa-barcode"></i></button>
+                    <button class="btn" title="QR Code الطالب" style="padding:5px 10px; background:#7c3aed; color:white;" onclick="showStudentQR(${s.id})"><i class="fas fa-qrcode"></i></button>
                     <button class="btn" title="تقرير شامل" style="padding:5px 10px; background:#3b82f6; color:white;" onclick="generateMonthlyReport(${s.id})"><i class="fas fa-file-invoice"></i></button>
                     <button class="btn" title="الملف الشخصي" style="padding:5px 10px;" onclick="viewDetailedProfile(${s.id})"><i class="fas fa-user-graduate"></i></button>
                     <button class="btn" title="تعديل" style="padding:5px 10px; background:var(--accent); color:white;" onclick="editStudent(${s.id})"><i class="fas fa-edit"></i></button>
-                    <button class="btn" title="نقل لمجموعة أخرى" style="padding:5px 10px; background:#8b5cf6; color:white;" onclick="showTransferStudentModal(${s.id})"><i class="fas fa-exchange-alt"></i></button>
-                    <button class="btn" title="حذف" style="padding:5px 10px; color:var(--danger);" onclick="deleteStudent(${s.id})"><i class="fas fa-trash"></i></button>
+                    <button class="btn" title="حذف" style="padding:5px 10px; color:var(--danger);" onclick="deleteStudent('${s.id}')"><i class="fas fa-trash"></i></button>
                 </div>
             </td>
         </tr>`).join('');
@@ -2262,7 +2345,7 @@ function handleAddGroup() {
     // Create group
     const newGroup = { id: Date.now(), name, time, grade: currentGrade };
     db.groups.push(newGroup);
-    db.save();
+    db.save('groups');
 
     // UI Updates
     renderGroups();
@@ -2332,10 +2415,10 @@ function renderGroups() {
             <td><span class="badge" style="background:var(--primary); color:white">${db.students.filter(s => s.groupId == g.id).length} طالب</span></td>
             <td>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn btn-primary" style="padding: 5px 15px; background: var(--accent);" onclick="viewGroupDetails(${g.id})">
+                    <button class="btn btn-primary" style="padding: 5px 15px; background: var(--accent);" onclick="viewGroupDetails('${g.id}')">
                         <i class="fas fa-eye"></i> عرض المجموعة
                     </button>
-                    <button class="btn" style="color:var(--danger)" onclick="deleteGroup(${g.id})">
+                    <button class="btn" style="color:var(--danger)" onclick="deleteGroup('${g.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
 
@@ -2386,7 +2469,6 @@ function renderGroupStudents() {
             <td>
                 <div style="display:flex; gap:8px;">
                     <button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="viewDetailedProfile(${s.id})"><i class="fas fa-user"></i></button>
-                    <button class="btn" title="نقل لمجموعة أخرى" style="padding:4px 8px; font-size:0.8rem; background:#8b5cf6; color:white;" onclick="showTransferStudentModal(${s.id})"><i class="fas fa-exchange-alt"></i></button>
                     <button class="btn" style="padding:4px 8px; font-size:0.8rem; color:var(--danger);" onclick="removeStudentFromGroup(${s.id})"><i class="fas fa-user-minus"></i></button>
                 </div>
             </td>
@@ -2522,12 +2604,80 @@ async function removeStudentFromGroup(studentId) {
 
 async function deleteGroup(id) {
     if (!rbacGuardDelete('حذف المجموعة')) return;
-    if (!confirm('سيتم حذف المجموعة نهائياً. هل أنت متأكد من الاستمرار؟')) return;
-    db.groups = db.groups.filter(g => g.id != id);
+
+    const group = db.groups.find(g => String(g.id) === String(id));
+    if (!group) return;
+
+    const studentsInGroup = db.students.filter(s => String(s.groupId) === String(id));
+    const studentsCount = studentsInGroup.length;
+    const attendanceCount = db.attendance.filter(a => String(a.groupId) === String(id)).length;
+    const paymentsCount = db.payments.filter(p => studentsInGroup.some(s => String(s.id) === String(p.studentId))).length;
+
+    // رسالة تأكيد تفصيلية
+    let confirmMsg = `⚠️ حذف المجموعة: "${group.name}"\n\n`;
+    confirmMsg += `سيتم حذف:\n`;
+    confirmMsg += `• المجموعة نفسها\n`;
+    if (studentsCount > 0) confirmMsg += `• ${studentsCount} طالب مرتبط بالمجموعة\n`;
+    if (attendanceCount > 0) confirmMsg += `• ${attendanceCount} سجل حضور\n`;
+    if (paymentsCount > 0) confirmMsg += `• ${paymentsCount} عملية دفع مرتبطة بطلاب المجموعة\n`;
+    confirmMsg += `\nهذا الإجراء لا يمكن التراجع عنه!\nهل أنت متأكد؟`;
+
+    if (!confirm(confirmMsg)) return;
+
+    // حذف الحضور المرتبط بالمجموعة
+    const attendanceToDelete = db.attendance.filter(a => String(a.groupId) === String(id));
+    for (const a of attendanceToDelete) {
+        await StorageEngine.delete('attendance', a.id).catch(() => { });
+        if (typeof CloudSync !== 'undefined' && CloudSync.deleteRecord) {
+            CloudSync.deleteRecord('attendance', a.id);
+        }
+    }
+    db.attendance = db.attendance.filter(a => String(a.groupId) !== String(id));
+
+    // حذف المدفوعات المرتبطة بطلاب هذه المجموعة
+    const studentIds = new Set(studentsInGroup.map(s => String(s.id)));
+    const paymentsToDelete = db.payments.filter(p => studentIds.has(String(p.studentId)));
+    for (const p of paymentsToDelete) {
+        await StorageEngine.delete('payments', p.id).catch(() => { });
+        if (typeof CloudSync !== 'undefined' && CloudSync.deleteRecord) {
+            CloudSync.deleteRecord('payments', p.id);
+        }
+    }
+    db.payments = db.payments.filter(p => !studentIds.has(String(p.studentId)));
+
+    // حذف الطلاب المرتبطين بالمجموعة
+    for (const s of studentsInGroup) {
+        await StorageEngine.delete('students', s.id).catch(() => { });
+        if (typeof CloudSync !== 'undefined' && CloudSync.deleteRecord) {
+            CloudSync.deleteRecord('students', s.id);
+        }
+    }
+    db.students = db.students.filter(s => String(s.groupId) !== String(id));
+
+    // حذف المجموعة نفسها
+    db.groups = db.groups.filter(g => String(g.id) !== String(id));
     await StorageEngine.delete('groups', id);
+    if (typeof CloudSync !== 'undefined' && CloudSync.deleteRecord) {
+        CloudSync.deleteRecord('groups', id);
+    }
+
+    // حفظ كل الجداول المتأثرة
     await db.save('groups');
+    await db.save('students');
+    await db.save('attendance');
+    await db.save('payments');
+
+    if (typeof currentGroupId !== 'undefined' && String(currentGroupId) === String(id)) {
+        currentGroupId = null;
+    }
+    if (typeof activeGroupDetailId !== 'undefined' && String(activeGroupDetailId) === String(id)) {
+        activeGroupDetailId = null;
+        showSection('groups-section');
+    }
+
+    showNotification(`✅ تم حذف المجموعة "${group.name}" وكل بياناتها بنجاح`, 'success');
     renderGroups();
-    refreshGroupContexts(); // Update all dropdowns
+    if (typeof refreshGroupContexts === 'function') refreshGroupContexts();
 }
 
 
@@ -2733,22 +2883,22 @@ function archiveAbsenceSession() {
 
     const presentIds = currentSessionAttendance.map(s => s.id);
     const presentStudents = expectedStudents.filter(s => presentIds.includes(s.id));
-    const absentStudents  = expectedStudents.filter(s => !presentIds.includes(s.id));
+    const absentStudents = expectedStudents.filter(s => !presentIds.includes(s.id));
 
     // ── إنشاء كائن الجلسة أولاً عشان نستخدم id فيه ───────────
     const sessionId = Date.now();
     const session = {
-        id:            sessionId,
-        name:          sessionName,
-        date:          new Date().toISOString(),
-        grade:         currentGrade,
-        groupId:       selectedGroupId === 'all' ? null : selectedGroupId,
-        presentCount:  presentStudents.length,
-        absentCount:   absentStudents.length,
-        presentNames:  presentStudents.map(s => s.name),
+        id: sessionId,
+        name: sessionName,
+        date: new Date().toISOString(),
+        grade: currentGrade,
+        groupId: selectedGroupId === 'all' ? null : selectedGroupId,
+        presentCount: presentStudents.length,
+        absentCount: absentStudents.length,
+        presentNames: presentStudents.map(s => s.name),
         absenteeNames: absentStudents.map(s => s.name),
-        presentIds:    presentStudents.map(s => s.id),
-        absentIds:     absentStudents.map(s => s.id)
+        presentIds: presentStudents.map(s => s.id),
+        absentIds: absentStudents.map(s => s.id)
     };
 
     // ── تسجيل الحضور والغياب مرتبطاً بـ sessionId ─────────────
@@ -2774,12 +2924,12 @@ function archiveAbsenceSession() {
             existing.groupId = existing.groupId || s.groupId || selectedGroupId;
         } else {
             db.attendance.push({
-                id:        Date.now() * 1000 + Math.floor(Math.random() * 1000),
+                id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
                 studentId: s.id,
-                groupId:   s.groupId || selectedGroupId,
-                date:      new Date().toISOString(),
+                groupId: s.groupId || selectedGroupId,
+                date: new Date().toISOString(),
                 sessionId,
-                status:    'present'
+                status: 'present'
             });
         }
     });
@@ -2792,12 +2942,12 @@ function archiveAbsenceSession() {
             existing.groupId = existing.groupId || s.groupId || selectedGroupId;
         } else {
             db.attendance.push({
-                id:        Date.now() * 1000 + Math.floor(Math.random() * 1000),
+                id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
                 studentId: s.id,
-                groupId:   s.groupId || selectedGroupId,
-                date:      new Date().toISOString(),
+                groupId: s.groupId || selectedGroupId,
+                date: new Date().toISOString(),
                 sessionId,
-                status:    'absent'
+                status: 'absent'
             });
         }
     });
@@ -2864,7 +3014,7 @@ function showAbsenceArchive() {
                     <button class="btn btn-primary" style="padding:5px 10px;" onclick="viewAbsenceSessionDetails(${s.id})">
                         <i class="fas fa-eye"></i> التفاصيل
                     </button>
-                    <button class="btn" style="color:var(--danger);" onclick="deleteAbsenceSession(${s.id})">
+                    <button class="btn" style="color:var(--danger);" onclick="deleteAbsenceSession('${s.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -2901,13 +3051,8 @@ function sendAbsenceWhatsApp(id) {
     const s = db.students.find(x => x.id === id);
     if (!s) return;
 
-    const message = buildFormalParentMessage({
-        noticeType: 'إشعار غياب',
-        bodyLines: [
-            `نحيط سيادتكم علماً بأن الطالب/ـة *${s.name}* لم يحضر/تحضر الحصة الدراسية اليوم الموافق ${new Date().toLocaleDateString('ar-EG')}.`,
-            `نرجو التكرم بمتابعة سبب الغياب، وموافاتنا بأي عذر إن وجد، حرصاً منا على انتظام مستواه/ـا الدراسي.`
-        ]
-    });
+    // ✅ استخدام نص الرسالة من إعدادات البرنامج مع استبدال {StudentName} باسم الطالب
+    const message = buildAbsenceMessageForStudent(s.name);
     const url = `https://wa.me/2${s.parentPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
     showNotification('تم فتح واتساب للإرسال المباشر');
@@ -2916,7 +3061,6 @@ function sendAbsenceWhatsApp(id) {
 function startSearchScanner() {
     toggleModal('search-scanner-modal', true);
     if (!searchScanner) searchScanner = new Html5Qrcode("search-reader");
-    if (searchScanner.isScanning) return; // شغالة بالفعل — تجنّب فتح جلسة كاميرا مكررة
     searchScanner.start(
         { facingMode: "environment" },
         { fps: 20, qrbox: { width: 300, height: 200 } },
@@ -2956,37 +3100,10 @@ function stopSearchScanner() {
     }
 }
 
-// ── طابور تسلسلي لعمليات تشغيل/إيقاف الكاميرا ──
-// يضمن عدم فتح جلسة كاميرا جديدة قبل ما تُغلق القديمة فعلياً
-// (كان هذا يسبب تراكم جلسات كاميرا مفتوحة عند التنقل السريع
-//  للدخول والخروج من شاشة الحضور، وهو ما يسبب تهنيج التطبيق
-//  بعد استخدام طويل خصوصاً داخل تطبيق APK/WebView)
-let _qrScannerQueue = Promise.resolve();
-
 function startQRScanner() {
-    _qrScannerQueue = _qrScannerQueue.then(async () => {
-        if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-        if (html5QrCode.isScanning) return; // شغالة بالفعل — تجنّب فتح جلسة كاميرا مكررة
-        try {
-            await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, processScan);
-        } catch (err) {
-            console.error("Scanner failed to start", err);
-        }
-    }).catch(() => {});
-    return _qrScannerQueue;
-}
-
-function stopQRScanner() {
-    _qrScannerQueue = _qrScannerQueue.then(async () => {
-        if (html5QrCode && html5QrCode.isScanning) {
-            try {
-                await html5QrCode.stop();
-                const reader = document.getElementById('reader');
-                if (reader) reader.style.display = 'none';
-            } catch (e) {}
-        }
-    }).catch(() => {});
-    return _qrScannerQueue;
+    if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, processScan)
+        .catch(err => console.error("Scanner failed to start", err));
 }
 
 // --- NEW: Attendance History Functions ---
@@ -3011,7 +3128,7 @@ function toggleAttendanceView(view) {
         scannerBtn.style.color = 'var(--text-main)';
         historyBtn.style.background = 'var(--primary)';
         historyBtn.style.color = 'white';
-        stopQRScanner();
+        if (html5QrCode) html5QrCode.stop().catch(() => { });
         renderHistoryByDate();
     }
 }
@@ -3297,9 +3414,7 @@ function startJointSession() {
         document.getElementById('portal-scanner-container').style.display = 'grid';
         renderPortalAttendance();
         if (!portalScanner) portalScanner = new Html5Qrcode("portal-reader");
-        if (!portalScanner.isScanning) {
-            portalScanner.start({ facingMode: "environment" }, { fps: 25, qrbox: { width: 350, height: 250 } }, processScan).catch(() => {});
-        }
+        portalScanner.start({ facingMode: "environment" }, { fps: 25, qrbox: { width: 350, height: 250 } }, processScan);
     }
 }
 
@@ -3329,9 +3444,7 @@ function startPortalSession(groupId) {
 
     renderPortalAttendance();
     if (!portalScanner) portalScanner = new Html5Qrcode("portal-reader");
-    if (!portalScanner.isScanning) {
-        portalScanner.start({ facingMode: "environment" }, { fps: 25, qrbox: { width: 350, height: 250 } }, processScan).catch(() => {});
-    }
+    portalScanner.start({ facingMode: "environment" }, { fps: 25, qrbox: { width: 350, height: 250 } }, processScan);
 }
 
 function renderPortalAttendance() {
@@ -3445,7 +3558,8 @@ function toggleMonthlyPayment(studentId) {
             amount: db.settings.monthlyFee || 0,
             date: new Date().toISOString(),
             category: 'اشتراك شهري',
-            cycleId: db.settings.activeCycle
+            cycleId: db.settings.activeCycle,
+            collectedBy: (typeof EmployeeAuth !== 'undefined') ? EmployeeAuth.getCurrentName() : undefined
         });
         addToQueue(studentId, 'payment');
         showNotification('تم تسجيل الدفع بنجاح ✅');
@@ -3511,7 +3625,7 @@ function renderDailyTreasury() {
                     <div style="font-weight:700;">${student ? student.name : 'طالب مجهول'}</div>
                 </td>
                 <td>${group ? group.name : '---'}</td>
-                <td><span class="status-badge" style="background:var(--bg-light); color:var(--text-main)">${p.category}</span></td>
+                <td><span class="status-badge" style="background:var(--bg-light); color:var(--text-main)">${p.category}</span>${p.collectedBy ? `<br><span style="font-size:.72rem; color:var(--text-muted);"><i class="fas fa-user"></i> ${p.collectedBy}</span>` : ''}</td>
                 <td style="text-align:center; font-weight:800; color:var(--accent); font-size:1.1rem;">${p.amount} ج.م</td>
                 <td style="text-align:center; color:var(--text-muted)">${new Date(p.date).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</td>
             </tr>
@@ -3638,7 +3752,7 @@ function manualResetDailyTreasury() {
             pairMap.get(key).payments.push(p);
         });
         allSessionExpenses.forEach(e => {
-            const grade   = e.grade   || currentGrade;
+            const grade = e.grade || currentGrade;
             const groupId = e.groupId || currentGroupId;
             const key = `${grade}||${groupId}`;
             if (!pairMap.has(key)) pairMap.set(key, { payments: [], expenses: [] });
@@ -3686,7 +3800,7 @@ function manualResetDailyTreasury() {
             // تجنّب التكرار: احذف أي entry موجود لنفس اليوم + المجموعة + الجلسة
             const existIdx = db.dailyTreasuryArchives.findIndex(
                 a => a.date === todayStr && String(a.grade) === String(grade) &&
-                     String(a.groupId) === String(groupId) && a.sessionName === sessionLabel
+                    String(a.groupId) === String(groupId) && a.sessionName === sessionLabel
             );
             if (existIdx !== -1) db.dailyTreasuryArchives.splice(existIdx, 1);
             db.dailyTreasuryArchives.push(archiveEntry);
@@ -3697,7 +3811,7 @@ function manualResetDailyTreasury() {
         db.settings.treasurySessionResetTime[todayStr] = Date.now();
 
         db.save();
-        StorageEngine.save('dailyTreasuryArchives', db.dailyTreasuryArchives).catch(() => {});
+        StorageEngine.save('dailyTreasuryArchives', db.dailyTreasuryArchives).catch(() => { });
         renderDailyTreasury();
         showNotification(`✅ تم تصفير العهدة لجميع المجموعات (${pairMap.size} مجموعة) والبدء من جديد`, "success");
     } else {
@@ -3707,7 +3821,7 @@ function manualResetDailyTreasury() {
 
 function autoArchiveDailyTreasury() {
     const todayStr = new Date().toLocaleDateString('en-CA');
-    const nowHour  = new Date().getHours();
+    const nowHour = new Date().getHours();
 
     // ── ساعة التصفير: من الإعدادات أو افتراضي 0 (منتصف الليل) ──
     const archiveHour = parseInt(
@@ -3831,6 +3945,7 @@ function _archiveDateTreasury(dateStr) {
                     studentName: s ? s.name : 'طالب مجهول',
                     category: p.category,
                     amount: p.amount,
+                    collectedBy: p.collectedBy || null,
                     time: new Date(p.date).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
                 };
             }),
@@ -3852,12 +3967,12 @@ function _archiveDateTreasury(dateStr) {
     // 🔧 الإصلاح الحاسم: حذف المدفوعات والمصروفات المؤرشفة من قاعدة البيانات
     // بعد نقل البيانات إلى الأرشيف بنجاح، يجب حذفها من الجداول النشطة
     console.log(`[_archiveDateTreasury] أرشفة ${archivedPaymentIds.length} مدفوعات و ${archivedExpenseIds.length} مصروفات من تاريخ ${dateStr}`);
-    
+
     if (archivedPaymentIds.length > 0) {
         db.payments = db.payments.filter(p => !archivedPaymentIds.includes(p.id));
         console.log(`✅ تم حذف ${archivedPaymentIds.length} مدفوعات من العهدة الحالية`);
     }
-    
+
     if (archivedExpenseIds.length > 0) {
         db.expenses = db.expenses.filter(e => !archivedExpenseIds.includes(e.id));
         console.log(`✅ تم حذف ${archivedExpenseIds.length} مصروفات من العهدة الحالية`);
@@ -3873,12 +3988,12 @@ function _archiveDateTreasury(dateStr) {
 
 
 function renderDailyTreasuryArchives(filterGroupId = 'all') {
-    const list        = document.getElementById('dt-archive-list');
-    const mainView    = document.getElementById('dt-main-view');
+    const list = document.getElementById('dt-archive-list');
+    const mainView = document.getElementById('dt-main-view');
     const archiveView = document.getElementById('dt-archive-view');
     if (!list) return;
 
-    if (mainView)    mainView.style.display    = 'none';
+    if (mainView) mainView.style.display = 'none';
     if (archiveView) archiveView.style.display = 'block';
 
     const titleEl = document.getElementById('dt-archive-title');
@@ -3905,7 +4020,7 @@ function renderDailyTreasuryArchives(filterGroupId = 'all') {
     const allBtn = document.createElement('button');
     allBtn.textContent = 'كل المجموعات';
     allBtn.dataset.gid = 'all';
-    allBtn.style.cssText = `padding:5px 16px; border-radius:8px; border:2px solid ${filterGroupId==='all'?'var(--primary)':'var(--border)'}; cursor:pointer; font-family:inherit; font-weight:700; font-size:.85rem; background:${filterGroupId==='all'?'var(--primary)':'#fff'}; color:${filterGroupId==='all'?'#fff':'var(--text-main)'};`;
+    allBtn.style.cssText = `padding:5px 16px; border-radius:8px; border:2px solid ${filterGroupId === 'all' ? 'var(--primary)' : 'var(--border)'}; cursor:pointer; font-family:inherit; font-weight:700; font-size:.85rem; background:${filterGroupId === 'all' ? 'var(--primary)' : '#fff'}; color:${filterGroupId === 'all' ? '#fff' : 'var(--text-main)'};`;
     filterBar.appendChild(allBtn);
 
     groupIds.forEach(gid => {
@@ -3915,7 +4030,7 @@ function renderDailyTreasuryArchives(filterGroupId = 'all') {
         const btn = document.createElement('button');
         btn.textContent = label;
         btn.dataset.gid = gid;
-        btn.style.cssText = `padding:5px 16px; border-radius:8px; border:2px solid ${active?'var(--accent)':'var(--border)'}; cursor:pointer; font-family:inherit; font-weight:700; font-size:.85rem; background:${active?'var(--accent)':'#fff'}; color:${active?'#fff':'var(--text-main)'};`;
+        btn.style.cssText = `padding:5px 16px; border-radius:8px; border:2px solid ${active ? 'var(--accent)' : 'var(--border)'}; cursor:pointer; font-family:inherit; font-weight:700; font-size:.85rem; background:${active ? 'var(--accent)' : '#fff'}; color:${active ? '#fff' : 'var(--text-main)'};`;
         filterBar.appendChild(btn);
     });
 
@@ -3946,9 +4061,9 @@ function renderDailyTreasuryArchives(filterGroupId = 'all') {
 
     filtered.forEach(a => {
         const archiveId = Number(a.id); // رقم صحيح دائماً
-        const gObj      = (db.groups || []).find(g => String(g.id) === String(a.groupId));
-        const gName     = gObj ? gObj.name : (a.groupId && a.groupId !== 'ungrouped' ? `مجموعة ${a.groupId}` : 'بدون مجموعة');
-        const net       = (a.totalSub || 0) + (a.totalMisc || 0) - (a.totalExp || 0);
+        const gObj = (db.groups || []).find(g => String(g.id) === String(a.groupId));
+        const gName = gObj ? gObj.name : (a.groupId && a.groupId !== 'ungrouped' ? `مجموعة ${a.groupId}` : 'بدون مجموعة');
+        const net = (a.totalSub || 0) + (a.totalMisc || 0) - (a.totalExp || 0);
         const dateLabel = new Date(a.date).toLocaleDateString('ar-EG', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
 
         const card = document.createElement('div');
@@ -3962,7 +4077,7 @@ function renderDailyTreasuryArchives(filterGroupId = 'all') {
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-size:0.85rem; color:var(--text-muted);">
-                    اشتراكات: <b>${a.totalSub||0}</b> ج.م | أخرى: <b>${a.totalMisc||0}</b> ج.م
+                    اشتراكات: <b>${a.totalSub || 0}</b> ج.م | أخرى: <b>${a.totalMisc || 0}</b> ج.م
                     ${a.totalExp ? ` | مصروفات: <b style="color:var(--danger)">-${a.totalExp}</b> ج.م` : ''}
                 </div>
                 <div style="font-weight:900; font-size:1.15rem; color:var(--accent)">${net} ج.م</div>
@@ -3989,24 +4104,24 @@ function viewDailyArchive(archiveId) {
         return;
     }
 
-    const groupObj  = db.groups.find(g => String(g.id) === String(archive.groupId));
+    const groupObj = db.groups.find(g => String(g.id) === String(archive.groupId));
     const groupName = groupObj ? groupObj.name : 'المجموعة';
     const dateLabel = new Date(archive.date).toLocaleDateString('ar-EG', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
 
-    const payments  = archive.payments  || [];
-    const expenses  = archive.expenses  || [];
-    const totalExp  = archive.totalExp  || expenses.reduce((s, e) => s + e.amount, 0);
-    const totalSub  = archive.totalSub  || 0;
+    const payments = archive.payments || [];
+    const expenses = archive.expenses || [];
+    const totalExp = archive.totalExp || expenses.reduce((s, e) => s + e.amount, 0);
+    const totalSub = archive.totalSub || 0;
     const totalMisc = archive.totalMisc || 0;
-    const netTotal  = totalSub + totalMisc - totalExp;
+    const netTotal = totalSub + totalMisc - totalExp;
 
     // ── بناء HTML التفاصيل ──────────────────────────────────
     const paymentsRows = payments.map((p, i) => `
         <tr style="${i % 2 === 0 ? 'background:#fafafa;' : ''}">
             <td style="padding:10px 14px; font-weight:700; color:#1e293b;">${p.studentName}</td>
-            <td style="padding:10px 14px; color:#64748b;">${p.category}</td>
+            <td style="padding:10px 14px; color:#64748b;">${p.category}${p.collectedBy ? `<br><span style="font-size:.72rem; color:#94a3b8;">بواسطة: ${p.collectedBy}</span>` : ''}</td>
             <td style="padding:10px 14px; text-align:center; font-weight:800; color:#10b981;">${p.amount} ج.م</td>
             <td style="padding:10px 14px; text-align:center; color:#94a3b8; font-size:0.82rem;">${p.time || '—'}</td>
         </tr>`).join('');
@@ -4081,7 +4196,7 @@ function viewDailyArchive(archiveId) {
                         ${paymentsRows}
                         ${expensesRows}
                         ${payments.length === 0 && expenses.length === 0 ?
-                            '<tr><td colspan="4" style="text-align:center;padding:2rem;color:#94a3b8;">لا توجد بيانات</td></tr>' : ''}
+            '<tr><td colspan="4" style="text-align:center;padding:2rem;color:#94a3b8;">لا توجد بيانات</td></tr>' : ''}
                     </tbody>
                 </table>
             </div>
@@ -4150,7 +4265,7 @@ function renderQuickAttendance() {
         return;
     }
     const groupStudents = db.students.filter(s =>
-        String(s.grade)   === String(currentGrade) &&
+        String(s.grade) === String(currentGrade) &&
         String(s.groupId) === String(currentGroupId)
     );
     const groupStudentIds = groupStudents.map(s => s.id);
@@ -4490,7 +4605,7 @@ function addToQueue(studentId, type, customText = null) {
     const s = db.students.find(x => x.id === studentId);
     if (!s) return;
 
-    let text = customText || waTemplates[type] || "تنبيه من مستر عبد الله عواد - [[name]]";
+    let text = customText || waTemplates[type] || "تنبيه من نظام إدارة الدروس - [[name]]";
     text = text.replace(/\[\[name\]\]/g, s.name).replace(/\[\[points\]\]/g, s.points || 0);
     text += getTeacherSignatureLine();
 
@@ -4695,12 +4810,10 @@ function initFastGrading() {
 
     if (currentGradingMode === 'barcode') {
         if (!fastGradingScanner) fastGradingScanner = new Html5Qrcode("fast-reader");
-        if (!fastGradingScanner.isScanning) {
-            fastGradingScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, processFastScan).catch(err => {
-                console.error("Scanner failed", err);
-                showNotification("تعذر تشغيل الكاميرا - يرجى التأكد من الصلاحيات", "error");
-            });
-        }
+        fastGradingScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, processFastScan).catch(err => {
+            console.error("Scanner failed", err);
+            showNotification("تعذر تشغيل الكاميرا - يرجى التأكد من الصلاحيات", "error");
+        });
 
         // ✅ خطوة 1: المؤشر داخل حقل الباركود تلقائيًا عند فتح الصفحة - بدون أي تدخل بالماوس
         focusBarcodeGradingInput();
@@ -4745,11 +4858,9 @@ function switchGradingMode(mode) {
         initManualGradingSetup();
     } else {
         if (!fastGradingScanner) fastGradingScanner = new Html5Qrcode("fast-reader");
-        if (!fastGradingScanner.isScanning) {
-            fastGradingScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, processFastScan).catch(err => {
-                console.error("Scanner failed", err);
-            });
-        }
+        fastGradingScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, processFastScan).catch(err => {
+            console.error("Scanner failed", err);
+        });
         focusBarcodeGradingInput();
     }
 }
@@ -5106,12 +5217,11 @@ function startManualGrading() {
                     style="text-align:center; font-weight:700;"
                     onkeydown="handleManualMarkKeydown(event, ${idx})">
             </td>
-            <td class="manual-status-cell">${
-                isAbsent
-                    ? '<span style="color:var(--danger); font-weight:700;"><i class="fas fa-user-times"></i> غائب</span>'
-                    : (existing != null
-                        ? '<span style="color:var(--accent); font-weight:700;"><i class="fas fa-check-circle"></i> تم</span>'
-                        : '<span style="color:var(--text-muted);">--</span>')
+            <td class="manual-status-cell">${isAbsent
+                ? '<span style="color:var(--danger); font-weight:700;"><i class="fas fa-user-times"></i> غائب</span>'
+                : (existing != null
+                    ? '<span style="color:var(--accent); font-weight:700;"><i class="fas fa-check-circle"></i> تم</span>'
+                    : '<span style="color:var(--text-muted);">--</span>')
             }</td>
         </tr>`;
     }).join('');
@@ -5339,7 +5449,7 @@ function renderFastHistory() {
                 </td>
                 <td>${new Date(s.id).toLocaleTimeString('ar-EG')}</td>
                 <td>
-                    <button class="btn" style="color:var(--danger); padding:4px;" onclick="deleteScore(${s.id})">
+                    <button class="btn" style="color:var(--danger); padding:4px;" onclick="deleteScore('${s.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -6176,24 +6286,12 @@ function openSmartCard(studentId) {
                     onclick="recordQuickAction(${s.id}, 'attendance'); openSmartCard(${s.id});">
                     <i class="fas fa-user-check"></i> تسجيل حضور
                 </button>
-                <!-- أزرار دفع الاشتراك الثلاثة المستقلة -->
+                <!-- أزرار دفع الاشتراك -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <button class="btn btn-payment" style="height: 65px; border-radius: 12px; font-size: 0.88rem; line-height:1.3; background: #16a34a; box-shadow: 0 4px 14px -2px rgba(22,163,74,0.35);"
+                    <button class="btn btn-payment" style="height: 65px; border-radius: 12px; font-size: 0.88rem; line-height:1.3; background: #f97316; box-shadow: 0 4px 14px -2px rgba(249,115,22,0.4);"
                         onclick="payLessonDirect(${s.id})">
                         <i class="fas fa-chalkboard-teacher" style="display:block;font-size:1.2rem;margin-bottom:3px;"></i>
                         دفع اشتراك الدرس
-                    </button>
-                    <button class="btn btn-payment" style="height: 65px; border-radius: 12px; font-size: 0.88rem; line-height:1.3; background: #2563eb; box-shadow: 0 4px 14px -2px rgba(37,99,235,0.35);"
-                        onclick="payPlatformDirect(${s.id})">
-                        <i class="fas fa-laptop-code" style="display:block;font-size:1.2rem;margin-bottom:3px;"></i>
-                        دفع اشتراك المنصة
-                    </button>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;">
-                    <button class="btn btn-payment" style="height: 65px; border-radius: 12px; font-size: 0.88rem; line-height:1.3; background: linear-gradient(135deg,#7c3aed,#db2777); box-shadow: 0 4px 14px -2px rgba(124,58,237,0.35);"
-                        onclick="payBothDirect(${s.id})">
-                        <i class="fas fa-layer-group" style="display:block;font-size:1.2rem;margin-bottom:3px;"></i>
-                        دفع الاشتراكين معاً
                     </button>
                     <button class="btn btn-payment" style="height: 65px; border-radius: 12px; font-size: 0.88rem; line-height:1.3; background: var(--vibrant-orange);"
                         onclick="recordQuickAction(${s.id}, 'handout'); openSmartCard(${s.id});">
@@ -6329,7 +6427,8 @@ function recordQuickAction(studentId, action) {
                 year: new Date().getFullYear(),
                 date: new Date().toISOString(),
                 category: 'اشتراك شهري',
-                cycleId: db.settings.activeCycle
+                cycleId: db.settings.activeCycle,
+                collectedBy: (typeof EmployeeAuth !== 'undefined') ? EmployeeAuth.getCurrentName() : undefined
             };
             db.payments.push(newPayment);
             paymentsChanged = true;
@@ -6358,7 +6457,8 @@ function recordQuickAction(studentId, action) {
             amount: parseInt(amount) || 0,
             date: new Date().toISOString(),
             category: 'ملزمة/مذكرة',
-            cycleId: db.settings.activeCycle || 'misc'
+            cycleId: db.settings.activeCycle || 'misc',
+            collectedBy: (typeof EmployeeAuth !== 'undefined') ? EmployeeAuth.getCurrentName() : undefined
         });
         paymentsChanged = true;
         showNotification(`تم تسجيل دفع الملزمة لـ ${s.name} ✅`, 'success');
@@ -6497,7 +6597,160 @@ function viewDetailedProfile(id) {
     toggleModal('profile-modal', true);
 }
 
-// --- System Helpers ---
+// ──────────────────────────────────────────────────────────────
+//  QR Code بطاقة الطالب — يفتح ملف الطالب مباشرة عند المسح
+// ──────────────────────────────────────────────────────────────
+let _currentQRStudentId = null;
+
+function showStudentQR(id) {
+    const s = db.students.find(x => x.id === id);
+    if (!s) return;
+    _currentQRStudentId = id;
+
+    const group = db.groups.find(g => g.id == s.groupId);
+
+    // بناء الـ URL الخاص بالطالب: student-report.html في نفس المجلد + ?student=ID
+    const baseDir = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+    const studentUrl = `${baseDir}student-report.html?student=${id}`;
+
+    // تحديث بيانات الـ Modal
+    document.getElementById('qr-modal-student-name').textContent = s.name;
+    document.getElementById('qr-modal-student-info').textContent =
+        `${group ? group.name : '---'}  •  ${s.phone || '---'}`;
+    document.getElementById('qr-modal-code-text').textContent = studentUrl.length > 60
+        ? studentUrl.slice(0, 57) + '...' : studentUrl;
+
+    // تنظيف QR container وإعادة الرسم
+    const container = document.getElementById('student-qr-container');
+    container.innerHTML = '<div style="color:var(--text-muted);"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+    toggleModal('student-qr-modal', true);
+
+    // رسم الـ QR Code بعد فتح الـ Modal
+    setTimeout(() => {
+        container.innerHTML = '';
+        if (typeof QRCode !== 'undefined') {
+            new QRCode(container, {
+                text: studentUrl,
+                width: 200,
+                height: 200,
+                colorDark: '#1e293b',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        } else {
+            // Fallback: QR عبر Google Charts API
+            const img = document.createElement('img');
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(studentUrl)}&color=1e293b&bgcolor=ffffff&qzone=1`;
+            img.alt = 'QR Code';
+            img.style = 'width:200px; height:200px; border-radius:8px;';
+            container.appendChild(img);
+        }
+    }, 150);
+}
+
+function printStudentQRCard() {
+    const s = db.students.find(x => x.id === _currentQRStudentId);
+    if (!s) return;
+
+    const group = db.groups.find(g => g.id == s.groupId);
+    const baseDir = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+    const studentUrl = `${baseDir}student-report.html?student=${s.id}`;
+    const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(studentUrl)}&color=1e293b&bgcolor=ffffff&qzone=2`;
+
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html dir="rtl"><head>
+        <meta charset="UTF-8">
+        <title>بطاقة QR - ${s.name}</title>
+        <style>
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body { font-family: 'Segoe UI', Tahoma, sans-serif; background:#f1f5f9; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+            .card { background:white; border-radius:20px; overflow:hidden; box-shadow:0 8px 30px rgba(0,0,0,0.12); width:320px; }
+            .card-header { background:linear-gradient(135deg,#0f4c81,#0ea5e9); color:white; padding:1.5rem; text-align:center; }
+            .card-header h2 { font-size:1.2rem; margin-bottom:0.2rem; }
+            .card-header p { opacity:.85; font-size:0.8rem; }
+            .card-body { padding:1.5rem; text-align:center; }
+            .card-body img { border-radius:12px; border:3px solid #e2e8f0; }
+            .student-url { font-size:0.65rem; color:#64748b; margin-top:0.8rem; word-break:break-all; direction:ltr; }
+            .group-badge { display:inline-block; background:#f1f5f9; border-radius:20px; padding:0.3rem 0.8rem; font-size:0.8rem; color:#0f4c81; font-weight:700; margin-top:0.6rem; }
+            @media print { body { background:white; } .card { box-shadow:none; } }
+        </style>
+    </head><body>
+        <div class="card">
+            <div class="card-header">
+                <h2>${s.name}</h2>
+                <p>بطاقة الطالب الرقمية</p>
+            </div>
+            <div class="card-body">
+                <img src="${qrImgSrc}" width="200" height="200" alt="QR Code">
+                <div class="group-badge">📚 ${group ? group.name : '---'}</div>
+                <p class="student-url">${studentUrl}</p>
+                <p style="font-size:0.75rem; color:#94a3b8; margin-top:0.5rem;">امسح الكود لفتح ملف الطالب</p>
+            </div>
+        </div>
+        <script>window.onload = () => setTimeout(() => window.print(), 500);<\/script>
+    </body></html>`);
+    win.document.close();
+}
+
+function downloadStudentQR() {
+    const s = db.students.find(x => x.id === _currentQRStudentId);
+    if (!s) return;
+
+    const baseUrl = window.location.origin + window.location.pathname;
+    const studentUrl = `${baseUrl}?student=${s.id}`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(studentUrl)}&color=1e293b&bgcolor=ffffff&qzone=2`;
+
+    const a = document.createElement('a');
+    a.href = qrApiUrl;
+    a.download = `QR_${s.name.replace(/\s+/g, '_')}.png`;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showNotification('📥 جاري تحميل QR Code...', 'info');
+}
+
+function sendStudentQRWhatsApp(type) {
+    const s = db.students.find(x => x.id === _currentQRStudentId);
+    if (!s) return showNotification('لم يتم العثور على بيانات الطالب', 'error');
+
+    const phone = type === 'parent' ? (s.parentPhone || s.phone) : s.phone;
+    const recipientLabel = type === 'parent' ? 'ولي الأمر' : 'الطالب';
+
+    if (!phone) {
+        return showNotification(`رقم ${recipientLabel} غير مسجل لهذا الطالب`, 'warning');
+    }
+
+    const baseDir = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+    const studentUrl = `${baseDir}student-report.html?student=${s.id}`;
+
+    const profile = typeof getProgramProfile === 'function' ? getProgramProfile() : {};
+    const teacherName = typeof getTeacherDisplayName === 'function' ? getTeacherDisplayName() : 'أستاذ المادة';
+    const spec = profile.specialization || 'لإعداد الأوائل';
+
+    let msg = '';
+    if (typeof buildFormalParentMessage === 'function') {
+        msg = buildFormalParentMessage({
+            noticeType: `رابط التقرير المباشر للطالب/ـة ${s.name}`,
+            bodyLines: [
+                `رابط التقرير الشخصي المباشر لمتابعة الحضور والغياب ودرجات الامتحانات والاشتراكات:
+
+📌 ${studentUrl}`
+            ]
+        });
+    } else {
+        msg = `السلام عليكم ورحمة الله وبركاته،\n\nرابط التقرير الشخصي المباشر للطالب/ـة: *${s.name}*\n${studentUrl}`;
+    }
+
+    const cleanPhone = String(phone).replace(/\D/g, '').replace(/^0/, '');
+    const fullPhone = cleanPhone.startsWith('20') ? cleanPhone : `20${cleanPhone}`;
+    const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+}
+
+
+
 function showNotification(msg, type = 'success', duration = 4000) {
     const n = document.createElement('div');
     n.className = 'fade-in';
@@ -6695,7 +6948,7 @@ function renderSessionTable() {
 
             // ── double-filter: grade صارم + group صارم ──────────
             const absentees = db.students.filter(s =>
-                String(s.grade)   === String(currentGrade) &&
+                String(s.grade) === String(currentGrade) &&
                 allowedGroupIds.includes(String(s.groupId)) &&
                 !presentIds.includes(s.id)
             );
@@ -6807,19 +7060,19 @@ function endLessonCoding() {
 
     // ── من هنا: الجلسة تنتهي بكل الأحوال — لا return بعد الآن ──
 
-    const today       = new Date().toLocaleDateString('en-CA');
+    const today = new Date().toLocaleDateString('en-CA');
     const activeGrade = currentGrade || localStorage.getItem('edu_active_grade');
-    const rawId       = activePortalGroupId || currentGroupId;
+    const rawId = activePortalGroupId || currentGroupId;
 
-    let allowedGroupIds  = [];
+    let allowedGroupIds = [];
     let groupDisplayName = '';
 
     if (rawId && String(rawId).startsWith('joint:')) {
-        allowedGroupIds  = rawId.split(':')[1].split(',');
+        allowedGroupIds = rawId.split(':')[1].split(',');
         groupDisplayName = 'اليوم الجماعي';
     } else if (rawId) {
-        allowedGroupIds  = [String(rawId)];
-        const groupObj   = db.groups.find(g => String(g.id) === String(rawId));
+        allowedGroupIds = [String(rawId)];
+        const groupObj = db.groups.find(g => String(g.id) === String(rawId));
         groupDisplayName = groupObj ? groupObj.name : 'هذه المجموعة';
     }
 
@@ -6839,11 +7092,11 @@ function endLessonCoding() {
 
             absentees.forEach((s, idx) => {
                 db.attendance.push({
-                    id:        Date.now() + idx + 1,
+                    id: Date.now() + idx + 1,
                     studentId: s.id,
-                    groupId:   s.groupId,
-                    date:      new Date().toISOString(),
-                    status:    'absent'
+                    groupId: s.groupId,
+                    date: new Date().toISOString(),
+                    status: 'absent'
                 });
                 addToQueue(s.id, 'absence');
             });
@@ -6863,26 +7116,26 @@ function endLessonCoding() {
 
     // ── 5. إنهاء الجلسة (دائماً) ────────────────────────────────
     SessionManager.end();
-    activePortalGroupId  = null;
+    activePortalGroupId = null;
     activePortalGroupIds = [];
 
     // ── 6. إعادة ضبط الـ UI (دائماً) ───────────────────────────
     renderSessionTable();
 
-    const startBtn  = document.getElementById('start-session-btn');
-    const jointBtn  = document.getElementById('start-joint-session-btn');
-    const pauseBtn  = document.getElementById('pause-session-btn');
+    const startBtn = document.getElementById('start-session-btn');
+    const jointBtn = document.getElementById('start-joint-session-btn');
+    const pauseBtn = document.getElementById('pause-session-btn');
     const resumeBtn = document.getElementById('resume-session-btn');
-    const endBtn    = document.getElementById('end-session-btn');
-    const badge     = document.getElementById('session-status-badge');
+    const endBtn = document.getElementById('end-session-btn');
+    const badge = document.getElementById('session-status-badge');
     const container = document.getElementById('current-session-container');
 
-    if (startBtn)  startBtn.style.display  = 'inline-flex';
-    if (jointBtn)  jointBtn.style.display  = 'inline-flex';
-    if (pauseBtn)  pauseBtn.style.display  = 'none';
+    if (startBtn) startBtn.style.display = 'inline-flex';
+    if (jointBtn) jointBtn.style.display = 'inline-flex';
+    if (pauseBtn) pauseBtn.style.display = 'none';
     if (resumeBtn) resumeBtn.style.display = 'none';
-    if (endBtn)    endBtn.style.display    = 'none';
-    if (badge)     badge.style.display     = 'none';
+    if (endBtn) endBtn.style.display = 'none';
+    if (badge) badge.style.display = 'none';
     if (container) container.style.display = 'none';
 
     renderQuickAttendance();
@@ -6890,7 +7143,13 @@ function endLessonCoding() {
     showNotification('✅ تم إنهاء التشفير وحفظ البيانات بنجاح');
 }
 
-// (تم دمج stopQRScanner القديمة مع النسخة الآمنة أعلى الملف لمنع تعارض التعريف المكرر)
+function stopQRScanner() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            document.getElementById('reader').style.display = 'none';
+        }).catch(err => console.error("Error stopping scanner:", err));
+    }
+}
 
 // --- Audio and Voice Helpers ---
 function playSound(type) {
@@ -7034,14 +7293,14 @@ function _printDailyTreasuryCurrentGroup() {
     const todayStrAr = new Date(todayStr).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const groupObj = db.groups.find(g => String(g.id) === String(currentGroupId));
     const gradeObj = (typeof gradesList !== 'undefined') ? gradesList.find(g => String(g.id) === String(currentGrade)) : null;
-    const profile = (typeof getProgramProfile === 'function') ? getProgramProfile() : { teacherName: 'مستر عبد الله عواد', centerName: 'مستر عبد الله عواد' };
+    const profile = (typeof getProgramProfile === 'function') ? getProgramProfile() : { teacherName: 'نظام إدارة الدروس', centerName: 'نظام إدارة الدروس' };
 
     const paymentsRows = todayPayments.map((p, i) => {
         const student = db.students.find(s => s.id === p.studentId);
         return `
             <tr style="${i % 2 === 0 ? 'background:#fafafa;' : ''}">
                 <td style="padding:10px 14px; font-weight:700; color:#1e293b;">${student ? student.name : 'طالب مجهول'}</td>
-                <td style="padding:10px 14px; color:#64748b;">${p.category}</td>
+                <td style="padding:10px 14px; color:#64748b;">${p.category}${p.collectedBy ? `<br><span style="font-size:.72rem; color:#94a3b8;">بواسطة: ${p.collectedBy}</span>` : ''}</td>
                 <td style="padding:10px 14px; text-align:center; font-weight:800; color:#10b981;">${p.amount} ج.م</td>
                 <td style="padding:10px 14px; text-align:center; color:#94a3b8; font-size:0.82rem;">${new Date(p.date).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</td>
             </tr>`;
@@ -7094,7 +7353,7 @@ function _printDailyTreasuryCurrentGroup() {
         <body>
             <div class="header">
                 <h1>💰 كشف تحصيل اليوم</h1>
-                <p>${profile.centerName || 'مستر عبد الله عواد'} — ${profile.teacherName || 'مستر عبد الله عواد'}</p>
+                <p>${profile.centerName || 'مستر محمد نبيل'}</p>
                 <p>${todayStrAr}</p>
                 <p>${gradeObj ? gradeObj.name : ''}${groupObj ? ' — ' + groupObj.name : ''}</p>
             </div>
@@ -7135,7 +7394,7 @@ function _printDailyTreasuryCurrentGroup() {
                 </tbody>
             </table>
 
-            <div class="footer">طبع بواسطة مستر عبد الله عواد | ${new Date().toLocaleString('ar-EG')}</div>
+            <div class="footer">طبع بواسطة نظام إدارة الدروس | ${new Date().toLocaleString('ar-EG')}</div>
         </body>
         </html>
     `);
@@ -7148,7 +7407,7 @@ function _printDailyTreasuryCurrentGroup() {
 
 // ── طباعة كشف جميع المجموعات لليوم ──────────────────────────────────
 function _printDailyTreasuryAllGroups() {
-    const profile = (typeof getProgramProfile === 'function') ? getProgramProfile() : { teacherName: 'مستر عبد الله عواد', centerName: 'مستر عبد الله عواد' };
+    const profile = (typeof getProgramProfile === 'function') ? getProgramProfile() : { teacherName: 'نظام إدارة الدروس', centerName: 'نظام إدارة الدروس' };
     const todayStrEn = new Date().toLocaleDateString('en-CA');
     const todayStrAr = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -7193,7 +7452,7 @@ function _printDailyTreasuryAllGroups() {
             const student = db.students.find(s => s.id === p.studentId);
             return `<tr style="${i % 2 === 0 ? 'background:#fafafa;' : ''}">
                 <td style="padding:8px 12px; font-weight:700;">${student ? student.name : '—'}</td>
-                <td style="padding:8px 12px; color:#64748b;">${p.category}</td>
+                <td style="padding:8px 12px; color:#64748b;">${p.category}${p.collectedBy ? `<br><span style="font-size:.72rem; color:#94a3b8;">بواسطة: ${p.collectedBy}</span>` : ''}</td>
                 <td style="padding:8px 12px; text-align:center; font-weight:800; color:#10b981;">${p.amount} ج.م</td>
                 <td style="padding:8px 12px; text-align:center; color:#94a3b8; font-size:.8rem;">${new Date(p.date).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</td>
             </tr>`;
@@ -7269,7 +7528,7 @@ function _printDailyTreasuryAllGroups() {
         <body>
             <div class="main-header">
                 <h1>🖨️ كشف تحصيل جميع المجموعات</h1>
-                <p>${profile.centerName || 'مستر عبد الله عواد'} — ${profile.teacherName || 'مستر عبد الله عواد'}</p>
+                <p>${profile.centerName || 'مستر محمد نبيل'}</p>
                 <p>${todayStrAr}</p>
             </div>
             <div class="grand-summary">
@@ -7291,7 +7550,7 @@ function _printDailyTreasuryAllGroups() {
                 </div>
             </div>
             ${groupSections}
-            <div class="footer">طبع بواسطة مستر عبد الله عواد | ${new Date().toLocaleString('ar-EG')}</div>
+            <div class="footer">طبع بواسطة نظام إدارة الدروس | ${new Date().toLocaleString('ar-EG')}</div>
         </body>
         </html>`);
     printWindow.document.close();
@@ -7352,7 +7611,7 @@ function printDailyTreasuryReport() {
         <body>
             <div class="header">
                 <h1>تقرير تحصيل الخزنة اليومي</h1>
-                <p>مستر عبد الله عواد - مستر عبد الله عواد</p>
+                <p>نظام إدارة الدروس</p>
                 <p style="font-weight: 700;">${todayStrAr}</p>
             </div>
             
@@ -7377,7 +7636,7 @@ function printDailyTreasuryReport() {
                 <tbody>${rows}</tbody>
             </table>
             
-            <div class="footer">طبع بواسطة مستر عبد الله عواد | ${new Date().toLocaleString('ar-EG')}</div>
+            <div class="footer">طبع بواسطة نظام إدارة الدروس | ${new Date().toLocaleString('ar-EG')}</div>
         </body>
         </html>
     `);
@@ -7440,7 +7699,7 @@ function printSessionAttendance() {
                 </tbody>
             </table>
             <footer style="margin-top: 50px; text-align: center; font-size: 0.8rem; color: #666;">
-                تم استخراج التقرير بواسطة مستر عبد الله عواد - ${new Date().toLocaleString('ar-EG')}
+                تم استخراج التقرير بواسطة نظام إدارة الدروس - ${new Date().toLocaleString('ar-EG')}
             </footer>
         </body>
         </html>
@@ -7518,7 +7777,7 @@ function printArchivedSession(filter = 'all') {
             </div>
 
             <footer style="margin-top: 50px; text-align: center; font-size: 0.8rem; color: #999; border-top: 1px solid #eee; padding-top: 10px;">
-                مستر عبد الله عواد - أرشيف الجلسات الرقمي | استُخرج بتاريخ: ${new Date().toLocaleString('ar-EG')}
+                نظام إدارة الدروس - أرشيف الجلسات الرقمي | استُخرج بتاريخ: ${new Date().toLocaleString('ar-EG')}
             </footer>
         </body>
         </html>
@@ -7643,11 +7902,11 @@ function startMonthlySubscription() {
         const systemFeeInput = document.getElementById('platform-system-fee-input');
         const systemPrice = (systemFeeInput && systemFeeInput.value !== '') ? Number(systemFeeInput.value) : originalPrice;
 
-        platformCourse = { 
-            courseId: course.courseId, 
-            courseTitle: course.courseTitle, 
-            originalPrice: originalPrice, 
-            price: systemPrice 
+        platformCourse = {
+            courseId: course.courseId,
+            courseTitle: course.courseTitle,
+            originalPrice: originalPrice,
+            price: systemPrice
         };
     }
 
@@ -7703,7 +7962,7 @@ function promptEndMonthlySubscription() {
         // "إنهاء الاشتراك"، وده كان بيخلي الشهر يتؤرشف تحت مجموعة غلط
         // فتختفي صفحته من تقرير طلاب المجموعة الصح.
         const cycleGroupId = db.settings.activeCycleGroupId || currentGroupId;
-        const cycleGrade   = db.settings.activeCycleGrade   || currentGrade;
+        const cycleGrade = db.settings.activeCycleGrade || currentGrade;
 
         const cyclePayments = db.payments.filter(p => {
             const s = db.students.find(x => x.id === p.studentId);
@@ -7788,7 +8047,8 @@ function collectMonthlyPayment(studentId) {
         year: currentYear,
         date: new Date().toISOString(),
         category: 'اشتراك شهري',
-        cycleId: db.settings.activeCycle
+        cycleId: db.settings.activeCycle,
+        collectedBy: (typeof EmployeeAuth !== 'undefined') ? EmployeeAuth.getCurrentName() : undefined
     };
     db.payments.push(newPayment);
 
@@ -7831,7 +8091,8 @@ function exemptMonthlyPayment(studentId) {
         date: new Date().toISOString(),
         category: 'اشتراك شهري',
         cycleId: db.settings.activeCycle,
-        isExemption: true
+        isExemption: true,
+        collectedBy: (typeof EmployeeAuth !== 'undefined') ? EmployeeAuth.getCurrentName() : undefined
     };
     db.payments.push(newPayment);
 
@@ -7879,7 +8140,8 @@ function discountMonthlyPayment(studentId) {
         date: new Date().toISOString(),
         category: 'اشتراك شهري',
         cycleId: db.settings.activeCycle,
-        discount: discount
+        discount: discount,
+        collectedBy: (typeof EmployeeAuth !== 'undefined') ? EmployeeAuth.getCurrentName() : undefined
     };
     db.payments.push(newPayment);
 
@@ -8123,21 +8385,23 @@ function renderFinances() {
             category: p.category || 'اشتراك',
             amount: p.amount,
             date: p.date,
-            type: 'income'
+            type: 'income',
+            collectedBy: p.collectedBy
         })),
         ...db.expenses.filter(e => e.groupId == currentGroupId).map(e => ({
             title: e.title,
             category: e.category,
             amount: e.amount,
             date: e.id, // e.id is timestamp
-            type: 'expense'
+            type: 'expense',
+            collectedBy: e.collectedBy
         }))
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     document.getElementById('finances-list').innerHTML = ledger.map(item => `
         <tr>
             <td>${item.title}</td>
-            <td>${item.category}</td>
+            <td>${item.category}${item.collectedBy ? `<br><span style="font-size:.72rem; color:var(--text-muted);"><i class="fas fa-user"></i> ${item.collectedBy}</span>` : ''}</td>
             <td style="color:${item.type === 'income' ? 'var(--accent)' : 'var(--danger)'}; font-weight:bold;">
                 ${item.type === 'income' ? '+' : '-'}${item.amount} ج.م
             </td>
@@ -8203,9 +8467,9 @@ function _buildReceiptItemsRows(payment) {
         rows.push({ label: 'إعفاء من الاشتراك', amount: null, note: 'معفى', color: '#2563eb' });
     } else if (payment.category === 'اشتراك شهري' || !payment.category) {
         const platformPart = Number(payment.platformFee || 0);
-        const lessonPart   = Number(payment.amount || 0) - platformPart;
-        if (lessonPart > 0)   rows.push({ label: 'اشتراك دروس',    amount: lessonPart,   color: '#10b981' });
-        if (platformPart > 0) rows.push({ label: 'اشتراك المنصة',  amount: platformPart, color: '#4f46e5' });
+        const lessonPart = Number(payment.amount || 0) - platformPart;
+        if (lessonPart > 0) rows.push({ label: 'اشتراك دروس', amount: lessonPart, color: '#10b981' });
+        if (platformPart > 0) rows.push({ label: 'اشتراك المنصة', amount: platformPart, color: '#4f46e5' });
         if (payment.discount && Number(payment.discount) > 0)
             rows.push({ label: 'خصم مطبَّق', amount: -Number(payment.discount), color: '#f59e0b' });
     } else if (payment.category === 'اشتراك المنصة') {
@@ -8228,12 +8492,12 @@ function printMonthlyReceipt(paymentId, size = 'thermal') {
     if (!student) return showNotification('لم يتم العثور على بيانات الطالب', 'error');
 
     const cycleTitle = getReceiptCycleTitle(payment);
-    const dateStr    = new Date(payment.date).toLocaleDateString('ar-EG');
-    const timeStr    = new Date(payment.date).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-    const groupObj   = db.groups.find(g => String(g.id) === String(student.groupId));
-    const groupName  = groupObj ? groupObj.name : '—';
-    const gradeName  = typeof gradeLabel === 'function' ? gradeLabel(student.grade) : (student.grade || '—');
-    const itemRows   = _buildReceiptItemsRows(payment);
+    const dateStr = new Date(payment.date).toLocaleDateString('ar-EG');
+    const timeStr = new Date(payment.date).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    const groupObj = db.groups.find(g => String(g.id) === String(student.groupId));
+    const groupName = groupObj ? groupObj.name : '—';
+    const gradeName = typeof gradeLabel === 'function' ? gradeLabel(student.grade) : (student.grade || '—');
+    const itemRows = _buildReceiptItemsRows(payment);
 
     let html;
 
@@ -8244,8 +8508,8 @@ function printMonthlyReceipt(paymentId, size = 'thermal') {
                 <td style="padding:10px 14px; font-weight:600; color:#374151; border-bottom:1px solid #f1f5f9;">${r.label}</td>
                 <td style="padding:10px 14px; text-align:left; font-weight:800; color:${r.color}; border-bottom:1px solid #f1f5f9;">
                     ${r.note
-                        ? `<span style="background:rgba(37,99,235,.1);color:#2563eb;padding:2px 10px;border-radius:8px;">${r.note}</span>`
-                        : (r.amount < 0 ? `- ${Math.abs(r.amount)} ج.م` : `${r.amount} ج.م`)}
+                ? `<span style="background:rgba(37,99,235,.1);color:#2563eb;padding:2px 10px;border-radius:8px;">${r.note}</span>`
+                : (r.amount < 0 ? `- ${Math.abs(r.amount)} ج.م` : `${r.amount} ج.م`)}
                 </td>
             </tr>`
         ).join('');
@@ -8301,6 +8565,7 @@ function printMonthlyReceipt(paymentId, size = 'thermal') {
                         <div class="info-item"><label>كود الطالب</label><span>${student.qrCode || '—'}</span></div>
                         <div class="info-item"><label>الصف الدراسي</label><span>${gradeName}</span></div>
                         <div class="info-item"><label>المجموعة</label><span>${groupName}</span></div>
+                        ${payment.collectedBy ? `<div class="info-item"><label>تم التحصيل بواسطة</label><span>${payment.collectedBy}</span></div>` : ''}
                     </div>
 
                     <div class="section-title">📋 تفاصيل المدفوعات</div>
@@ -8371,7 +8636,7 @@ function printMonthlyReceipt(paymentId, size = 'thermal') {
         </head>
         <body>
             <div class="center">
-                <h3 style="margin:5px 0; font-size:15px;">مستر عبد الله عواد</h3>
+                <h3 style="margin:5px 0; font-size:15px;">${getTeacherDisplayName()}</h3>
                 <div style="font-size:11px; color:#555;">${cycleTitle}</div>
             </div>
             <hr>
@@ -8381,6 +8646,7 @@ function printMonthlyReceipt(paymentId, size = 'thermal') {
                 <tr><td class="label">الكود</td><td style="text-align:left;">${student.qrCode || '—'}</td></tr>
                 <tr><td class="label">الصف</td><td style="text-align:left;">${gradeName}</td></tr>
                 <tr><td class="label">التاريخ</td><td style="text-align:left;">${dateStr} ${timeStr}</td></tr>
+                ${payment.collectedBy ? `<tr><td class="label">تم التحصيل بواسطة</td><td style="text-align:left;">${payment.collectedBy}</td></tr>` : ''}
             </table>
             <hr>
             <div class="detail-title">تفاصيل الدفع:</div>
@@ -8514,17 +8780,17 @@ function _buildBulkReceiptCard(payment) {
     const student = db.students.find(s => s.id == payment.studentId);
     if (!student) return '';
 
-    const profile   = (typeof getProgramProfile === 'function') ? getProgramProfile() : { centerName: 'مستر عبد الله عواد' };
+    const profile = (typeof getProgramProfile === 'function') ? getProgramProfile() : { centerName: 'نظام إدارة الدروس' };
     const cycleTitle = getReceiptCycleTitle(payment);
-    const dateStr    = new Date(payment.date).toLocaleDateString('ar-EG');
-    const gradeName  = typeof gradeLabel === 'function' ? gradeLabel(student.grade) : (student.grade || '—');
+    const dateStr = new Date(payment.date).toLocaleDateString('ar-EG');
+    const gradeName = typeof gradeLabel === 'function' ? gradeLabel(student.grade) : (student.grade || '—');
     const statusLabel = payment.isExemption ? 'معفى' : (payment.discount ? `بعد خصم ${payment.discount} ج.م` : 'كامل');
-    const amountText  = payment.isExemption ? 'معفى' : `${payment.amount} ج.م`;
+    const amountText = payment.isExemption ? 'معفى' : `${payment.amount} ج.م`;
 
     return `
         <div class="bulk-receipt-card">
             <div class="bc-header">
-                <span class="bc-center">${profile.centerName || 'مستر عبد الله عواد'}</span>
+                <span class="bc-center">${profile.centerName || 'مستر محمد نبيل'}</span>
                 <span class="bc-num">#${payment.id}</span>
             </div>
             <div class="bc-row"><span class="bc-label">الطالب</span><span class="bc-value">${student.name}</span></div>
@@ -8664,7 +8930,8 @@ function handleAddExpense() {
         amount: a,
         category: c,
         date: new Date().toISOString(), // Ensure date is stored
-        groupId: currentGroupId
+        groupId: currentGroupId,
+        collectedBy: (typeof EmployeeAuth !== 'undefined') ? EmployeeAuth.getCurrentName() : undefined
     });
     db.save('expenses');
     renderFinances();
@@ -8757,8 +9024,11 @@ function printExpensesReport() {
 async function deleteStudent(id) {
     if (!rbacGuardDelete('حذف الطالب')) return;
     if (!confirm('هل أنت متأكد من حذف هذا الطالب نهائياً؟')) return;
-    db.students = db.students.filter(s => s.id !== id);
+    db.students = db.students.filter(s => String(s.id) !== String(id));
     await StorageEngine.delete('students', id);
+    if (typeof CloudSync !== 'undefined' && CloudSync.deleteRecord) {
+        CloudSync.deleteRecord('students', id);
+    }
     await db.save('students');
     renderStudents();
     showNotification('تم حذف الطالب بنجاح');
@@ -8766,35 +9036,42 @@ async function deleteStudent(id) {
 
 async function clearAllStudents() {
     const confirmed = confirm('⚠️ تحذير: هل أنت متأكد من رغبتك في مسح جميع الطلاب؟\n\nسيتم حذف جميع الطلاب المسجلين والبيانات المرتبطة بهم (الحضور والدرجات وغيرها).\n\nهذا الإجراء لا يمكن التراجع عنه!');
-    
+
     if (!confirmed) return;
 
     const doubleConfirm = confirm('هل أنت متأكد 100%؟ سيتم حذف جميع الطلاب نهائياً!');
     if (!doubleConfirm) return;
 
     try {
-        // مسح جميع الطلاب من الذاكرة
-        db.students = [];
-        
-        // مسح جميع الطلاب من IndexedDB
+        // مسح جميع الطلاب من IndexedDB وتدميرهم من السحابة
         const allStudents = await StorageEngine.getAll('students');
         for (const student of allStudents) {
             await StorageEngine.delete('students', student.id);
+            if (typeof CloudSync !== 'undefined' && CloudSync.deleteRecord) {
+                CloudSync.deleteRecord('students', student.id);
+            }
         }
+        db.students = [];
 
-        // مسح بيانات الحضور المرتبطة بهم (اختياري - يمكن تركها)
-        db.attendance = [];
+        // مسح بيانات الحضور المرتبطة بهم
         const allAttendance = await StorageEngine.getAll('attendance');
         for (const att of allAttendance) {
             await StorageEngine.delete('attendance', att.id);
+            if (typeof CloudSync !== 'undefined' && CloudSync.deleteRecord) {
+                CloudSync.deleteRecord('attendance', att.id);
+            }
         }
+        db.attendance = [];
 
         // مسح الدرجات المرتبطة
-        db.scores = [];
         const allScores = await StorageEngine.getAll('scores');
         for (const score of allScores) {
             await StorageEngine.delete('scores', score.id);
+            if (typeof CloudSync !== 'undefined' && CloudSync.deleteRecord) {
+                CloudSync.deleteRecord('scores', score.id);
+            }
         }
+        db.scores = [];
 
         // حفظ التغييرات
         await db.save('students');
@@ -8856,7 +9133,7 @@ function sendWhatsApp(studentId, target) {
 //   6) تصميم جديد بالكامل لمنطقة التقرير.
 // ============================================================
 
-const ARABIC_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const ARABIC_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
 function _periodKey(year, month) { return `${year}-${String(month).padStart(2, '0')}`; }
 
@@ -8887,10 +9164,10 @@ function buildAvailableReportPeriods(student) {
 
     (db.cycles || []).forEach(c => {
         const sameGroup = !c.groupId || String(c.groupId) === String(student.groupId);
-        const sameGrade = !c.grade  || String(c.grade)   === String(student.grade);
+        const sameGrade = !c.grade || String(c.grade) === String(student.grade);
         if (!sameGroup || !sameGrade) return;
         const start = c.startDate ? new Date(c.startDate) : new Date(c.date || c.id);
-        const end   = c.date ? new Date(c.date) : new Date(c.id);
+        const end = c.date ? new Date(c.date) : new Date(c.id);
         if (isNaN(start.getTime())) return;
         cycles.push({
             key: `cycle-${c.id}`,
@@ -8902,7 +9179,7 @@ function buildAvailableReportPeriods(student) {
 
     if (db.settings.activeCycle && db.settings.cycleStartDate) {
         const activeSameGroup = !db.settings.activeCycleGroupId || String(db.settings.activeCycleGroupId) === String(student.groupId);
-        const activeSameGrade = !db.settings.activeCycleGrade  || String(db.settings.activeCycleGrade)  === String(student.grade);
+        const activeSameGrade = !db.settings.activeCycleGrade || String(db.settings.activeCycleGrade) === String(student.grade);
         if (activeSameGroup && activeSameGrade) {
             cycles.push({
                 key: `cycle-${db.settings.activeCycle}`,
@@ -8937,7 +9214,7 @@ function buildAvailableReportPeriods(student) {
     });
     db.exams
         .filter(e => String(e.grade) === String(student.grade) &&
-                     (!e.groupId || String(e.groupId) === String(student.groupId)))
+            (!e.groupId || String(e.groupId) === String(student.groupId)))
         .forEach(e => addFallback(new Date(e.id)));
 
     // ── 3. تجميع كل الصفحات: دورات فعلية + fallback شهري + الشهر الحالي ──
@@ -9115,7 +9392,7 @@ function sendMonthlyReportWhatsApp() {
     });
 
     const presentCount = periodAttsWA.filter(a => a.status === 'present').length + extraPresentWA.length;
-    const absentCount  = periodAttsWA.filter(a => a.status === 'absent').length  + extraAbsentWA.length;
+    const absentCount = periodAttsWA.filter(a => a.status === 'absent').length + extraAbsentWA.length;
 
     // ── 2. الامتحانات ────────────────────────────────────────
     const periodExams = db.exams.filter(e => {
@@ -9155,16 +9432,16 @@ function sendMonthlyReportWhatsApp() {
 
     // ── 4. بناء نص الرسالة ──────────────────────────────────
     const _profileWA = getProgramProfile();
-    // 🔧 الاسم مثبّت دائماً "مستر عبد الله عواد" — لا يعتمد على الإعدادات المحفوظة
+    // 🔧 الاسم مثبّت دائماً "نظام إدارة الدروس" — لا يعتمد على الإعدادات المحفوظة
     const teacherLine = {
-        name: TEACHER_FIXED_NAME,
-        spec: _profileWA.specialization || 'أستاذ التاريخ والجغرافيا'
+        name: getTeacherDisplayName(),
+        spec: _profileWA.specialization || 'لإعداد الأوائل'
     };
     const examsSection = examsAttended.length > 0
         ? examsAttended.map(r => {
             const percent = Math.round((r.mark / r.exam.maxMarks) * 100);
             return `   • ${r.exam.title}: ${r.mark} من ${r.exam.maxMarks} (${percent}%)`;
-          }).join('\n')
+        }).join('\n')
         : '   لا توجد امتحانات مسجلة لهذا الشهر';
 
     const allExamsSection = examRows.length > 0
@@ -9177,13 +9454,13 @@ function sendMonthlyReportWhatsApp() {
             } else {
                 return `   • ${r.exam.title}: لم تُرصد النتيجة بعد ⏳`;
             }
-          }).join('\n')
+        }).join('\n')
         : '   لا توجد امتحانات في هذا الشهر';
 
     const msg = buildFormalParentMessage({
         noticeType: `تقرير الأداء الشهري — ${period.label}`,
         bodyLines: [
-`الطالب/ـة: *${s.name}*
+            `الطالب/ـة: *${s.name}*
 مع ${teacherLine.name} - ${teacherLine.spec}
 
 📌 الحضور والغياب:
@@ -9202,7 +9479,7 @@ ${allExamsSection}
     // ── 5. فتح واتساب ───────────────────────────────────────
     // تنظيف رقم الهاتف: إزالة أي مسافات أو رموز، وإضافة كود مصر 20
     const cleanPhone = String(phone).replace(/\D/g, '').replace(/^0/, '');
-    const fullPhone  = cleanPhone.startsWith('20') ? cleanPhone : `20${cleanPhone}`;
+    const fullPhone = cleanPhone.startsWith('20') ? cleanPhone : `20${cleanPhone}`;
     const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
 }
@@ -9217,12 +9494,12 @@ function renderMonthlyReportBody() {
     // ✅ إصلاح: نفس منطق sendMonthlyReportWhatsApp — استخدام حدود الدورة
     // الفعلية بدل حساب حدود الشهر الميلادي من جديد.
     const { start, end } = period;
-    const profile = (typeof getProgramProfile === 'function') ? getProgramProfile() : { teacherName: 'مستر عبد الله عواد', centerName: 'مستر عبد الله عواد' };
+    const profile = (typeof getProgramProfile === 'function') ? getProgramProfile() : { teacherName: 'نظام إدارة الدروس', centerName: 'نظام إدارة الدروس' };
     const groupObj = db.groups.find(g => String(g.id) === String(s.groupId));
     const gradeObj = (typeof gradesList !== 'undefined') ? gradesList.find(g => String(g.id) === String(s.grade)) : null;
 
     // ── Header info ──
-    document.getElementById('report-teacher-name').innerText = `المدرّس: ${profile.teacherName || 'مستر عبد الله عواد'} — ${profile.specialization || 'أستاذ التاريخ والجغرافيا'}`;
+    document.getElementById('report-teacher-name').innerText = `${getTeacherDisplayName()} — ${profile.specialization || 'لإعداد الأوائل'}`;
     document.getElementById('report-date-range').innerText = `للفترة: ${period.label}`;
     document.getElementById('rep-st-name').innerText = s.name;
     document.getElementById('rep-st-code').innerText = s.qrCode || '---';
@@ -9252,7 +9529,7 @@ function renderMonthlyReportBody() {
     }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const presentAtts = periodAtts.filter(a => a.status === 'present');
-    const absentAtts  = periodAtts.filter(a => a.status === 'absent');
+    const absentAtts = periodAtts.filter(a => a.status === 'absent');
 
     // ب) جلسات absenceSessions للطالب في الفترة
     //    نستخدمها فقط لو الجلسة ليس لها سجلات في attendance (جلسات قديمة)
@@ -9420,7 +9697,7 @@ function renderMonthlyReportBody() {
     if (presentRecords.length > 0) {
         // عرض كل حصة حضور على سطر منفصل مع اسم الجلسة لو متوفر
         const presentRows = presentRecords.map((a, i) => {
-            const dateStr  = new Date(a.date).toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric', month: 'numeric' });
+            const dateStr = new Date(a.date).toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric', month: 'numeric' });
             const sessName = a._sessionName
                 ? `<span style="color:var(--text-muted); font-size:.8rem;"> — ${a._sessionName}</span>`
                 : '';
@@ -9435,7 +9712,7 @@ function renderMonthlyReportBody() {
 
     if (absentRecords.length > 0) {
         const absentRows = absentRecords.map((a, i) => {
-            const dateStr  = new Date(a.date).toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric', month: 'numeric' });
+            const dateStr = new Date(a.date).toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric', month: 'numeric' });
             const sessName = a._sessionName
                 ? `<span style="color:var(--text-muted); font-size:.8rem;"> — ${a._sessionName}</span>`
                 : '';
@@ -9544,27 +9821,27 @@ function renderMonthlyReportBody() {
 
 // ── جدول الأعمدة المختصرة لكل جدول ──────────────────────────
 const _COL_MAP = {
-    students:             { id:'id', name:'nm', grade:'gr', groupId:'gid', qrCode:'qr', phone:'ph', parentPhone:'pp', points:'pt', notes:'no', joinDate:'jd', centerCode:'cc', platformCode:'pc', gender:'gn', isExempt:'ex' },
-    attendance:           { id:'id', studentId:'sid', date:'d', status:'s', sessionId:'ssid', grade:'gr', groupId:'gid' },
-    payments:             { id:'id', studentId:'sid', date:'d', amount:'am', category:'cat', cycleId:'cid', month:'mo', year:'yr', isExemption:'xm', discount:'dc', platformFee:'pf', notes:'no', groupId:'gid', grade:'gr' },
-    expenses:             { id:'id', date:'d', amount:'am', description:'ds', grade:'gr', groupId:'gid', category:'cat' },
-    exams:                { id:'id', title:'ti', grade:'gr', groupId:'gid', maxMarks:'mx', date:'d' },
-    scores:               { id:'id', examId:'eid', studentId:'sid', mark:'mk', date:'d' },
-    absenceSessions:      { id:'id', date:'d', grade:'gr', groupId:'gid', name:'nm', presentIds:'pid', absentIds:'aid', note:'no' },
-    dailyTreasuryArchives:{ id:'id', date:'d', grade:'gr', groupId:'gid', sessionName:'sn', totalSub:'ts', totalMisc:'tm', totalExp:'te', total:'tt', payments:'py', expenses:'ex' },
-    cycles:               { id:'id', title:'ti', grade:'gr', groupId:'gid', startDate:'sd', endDate:'ed', isActive:'ia', monthlyFee:'mf' },
-    groups:               { id:'id', name:'nm', grade:'gr', time:'ti', days:'dy', capacity:'cp', color:'cl' },
-    handouts:             { id:'id', title:'ti', grade:'gr', groupId:'gid', price:'pr', date:'d' },
-    studentHandouts:      { id:'id', studentId:'sid', handoutId:'hid', date:'d', paid:'pd', amount:'am' },
-    rewards:              { id:'id', title:'ti', grade:'gr', pointsCost:'pc', stock:'st', icon:'ic' },
-    quizzes:              { id:'id', title:'ti', grade:'gr', groupId:'gid', questions:'q', date:'d' },
-    staff:                { id:'id', name:'nm', role:'ro', pin:'pi', phone:'ph', joinDate:'jd', isActive:'ia' },
-    shifts:               { id:'id', staffId:'sid', date:'d', type:'tp', note:'no' },
-    materials:            { id:'id', title:'ti', grade:'gr', groupId:'gid', type:'tp', url:'ur', date:'d' },
-    waQueue:              { id:'id', studentId:'sid', message:'ms', type:'tp', date:'d', status:'st', phone:'ph' },
-    platformCourses:      { id:'id', title:'ti', grade:'gr', price:'pr', isActive:'ia', platformCode:'pc' },
-    platformSubscriptions:{ id:'id', studentId:'sid', courseId:'cid', date:'d', expiryDate:'ed', status:'st', amount:'am' },
-    courseCodes:          { id:'id', code:'co', grade:'gr', groupId:'gid', used:'us', usedBy:'ub', date:'d' },
+    students: { id: 'id', name: 'nm', grade: 'gr', groupId: 'gid', qrCode: 'qr', phone: 'ph', parentPhone: 'pp', points: 'pt', notes: 'no', joinDate: 'jd', centerCode: 'cc', platformCode: 'pc', gender: 'gn', isExempt: 'ex' },
+    attendance: { id: 'id', studentId: 'sid', date: 'd', status: 's', sessionId: 'ssid', grade: 'gr', groupId: 'gid' },
+    payments: { id: 'id', studentId: 'sid', date: 'd', amount: 'am', category: 'cat', cycleId: 'cid', month: 'mo', year: 'yr', isExemption: 'xm', discount: 'dc', platformFee: 'pf', notes: 'no', groupId: 'gid', grade: 'gr' },
+    expenses: { id: 'id', date: 'd', amount: 'am', description: 'ds', grade: 'gr', groupId: 'gid', category: 'cat' },
+    exams: { id: 'id', title: 'ti', grade: 'gr', groupId: 'gid', maxMarks: 'mx', date: 'd' },
+    scores: { id: 'id', examId: 'eid', studentId: 'sid', mark: 'mk', date: 'd' },
+    absenceSessions: { id: 'id', date: 'd', grade: 'gr', groupId: 'gid', name: 'nm', presentIds: 'pid', absentIds: 'aid', note: 'no' },
+    dailyTreasuryArchives: { id: 'id', date: 'd', grade: 'gr', groupId: 'gid', sessionName: 'sn', totalSub: 'ts', totalMisc: 'tm', totalExp: 'te', total: 'tt', payments: 'py', expenses: 'ex' },
+    cycles: { id: 'id', title: 'ti', grade: 'gr', groupId: 'gid', startDate: 'sd', endDate: 'ed', isActive: 'ia', monthlyFee: 'mf' },
+    groups: { id: 'id', name: 'nm', grade: 'gr', time: 'ti', days: 'dy', capacity: 'cp', color: 'cl' },
+    handouts: { id: 'id', title: 'ti', grade: 'gr', groupId: 'gid', price: 'pr', date: 'd' },
+    studentHandouts: { id: 'id', studentId: 'sid', handoutId: 'hid', date: 'd', paid: 'pd', amount: 'am' },
+    rewards: { id: 'id', title: 'ti', grade: 'gr', pointsCost: 'pc', stock: 'st', icon: 'ic' },
+    quizzes: { id: 'id', title: 'ti', grade: 'gr', groupId: 'gid', questions: 'q', date: 'd' },
+    staff: { id: 'id', name: 'nm', role: 'ro', pin: 'pi', phone: 'ph', joinDate: 'jd', isActive: 'ia' },
+    shifts: { id: 'id', staffId: 'sid', date: 'd', type: 'tp', note: 'no' },
+    materials: { id: 'id', title: 'ti', grade: 'gr', groupId: 'gid', type: 'tp', url: 'ur', date: 'd' },
+    waQueue: { id: 'id', studentId: 'sid', message: 'ms', type: 'tp', date: 'd', status: 'st', phone: 'ph' },
+    platformCourses: { id: 'id', title: 'ti', grade: 'gr', price: 'pr', isActive: 'ia', platformCode: 'pc' },
+    platformSubscriptions: { id: 'id', studentId: 'sid', courseId: 'cid', date: 'd', expiryDate: 'ed', status: 'st', amount: 'am' },
+    courseCodes: { id: 'id', code: 'co', grade: 'gr', groupId: 'gid', used: 'us', usedBy: 'ub', date: 'd' },
 };
 const _COL_MAP_REVERSE = {}; // سيُبنى عند الاستيراد
 
@@ -9744,13 +10021,13 @@ async function exportData() {
             `window.edu_initial_data=${jsonBody};`;
 
         // 6. حساب وعرض إحصاء الضغط
-        const originalSize  = JSON.stringify(rawTables).length;
+        const originalSize = JSON.stringify(rawTables).length;
         const compressedSize = jsonBody.length;
         const ratio = Math.round((1 - compressedSize / originalSize) * 100);
 
         const blob = new Blob([fileContent], { type: 'application/javascript; charset=utf-8' });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
         document.body.appendChild(a);
         a.style.display = 'none';
         a.href = url;
@@ -9802,12 +10079,12 @@ async function importData(input) {
             let parsedData = null;
 
             // 🔧 محاولة 1: JSON مباشر
-            try { 
+            try {
                 parsedData = JSON.parse(fileContent.trim());
                 console.log('✅ تم قراءة الملف كـ JSON مباشر');
-            } catch (_) {}
+            } catch (_) { }
 
-            // 🔧 محاولة 2: window.edu_initial_data = {...}; (الصيغة القياسية لمستر عبد الله عواد)
+            // 🔧 محاولة 2: window.edu_initial_data = {...}; (الصيغة القياسية لنظام إدارة الدروس)
             // greedy match لضمان التقاط الـ JSON كاملاً حتى آخر }
             if (!parsedData) {
                 try {
@@ -9817,19 +10094,19 @@ async function importData(input) {
                         parsedData = JSON.parse(jsonStr);
                         console.log('✅ تم قراءة الملف من window.edu_initial_data (greedy)');
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
 
             // 🔧 محاولة 3: أول بلوك {} كامل في الملف (من أول { لآخر })
             if (!parsedData) {
                 try {
                     const first = fileContent.indexOf('{');
-                    const last  = fileContent.lastIndexOf('}');
+                    const last = fileContent.lastIndexOf('}');
                     if (first !== -1 && last > first) {
                         parsedData = JSON.parse(fileContent.substring(first, last + 1));
                         console.log('✅ تم قراءة الملف من أول بلوك {}');
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
 
             // 🔧 محاولة 4: مصفوفة [] (students مباشرة)
@@ -9840,7 +10117,7 @@ async function importData(input) {
                         parsedData = { students: arr };
                         console.log('✅ تم قراءة الملف كـ مصفوفة students');
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
 
             // 🔧 محاولة 5: تنظيف شامل — إزالة التعليقات ومتغير window ثم parse
@@ -9854,7 +10131,7 @@ async function importData(input) {
                         .replace(/;\s*$/, '');
                     parsedData = JSON.parse(cleaned);
                     console.log('✅ تم قراءة الملف بعد تنظيف شامل');
-                } catch (_) {}
+                } catch (_) { }
             }
 
             // 🔧 محاولة 6: Function sandbox — آخر ملاذ
@@ -9869,11 +10146,11 @@ async function importData(input) {
                         parsedData = result;
                         console.log('✅ تم قراءة الملف عبر Function sandbox');
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
 
             if (!parsedData || typeof parsedData !== 'object') {
-                throw new Error('لم يتم التعرف على صيغة الملف. تأكد أن الملف هو data.js الصادر من مستر عبد الله عواد.');
+                throw new Error('لم يتم التعرف على صيغة الملف. تأكد أن الملف هو data.js الصادر من نظام إدارة الدروس.');
             }
 
             // ⭐ طباعة معلومات تشخيصية
@@ -9889,8 +10166,46 @@ async function importData(input) {
 
             const success = await hydrateDatabase(parsedData);
             if (success) {
-                showNotification('✅ تم استعادة البيانات بنجاح! سيتم تحديث البرنامج...', 'success');
-                setTimeout(() => location.reload(), 2000);
+                await db.load();
+                showNotification('✅ تم استعادة البيانات بنجاح! جاري الرفع على السحاب...', 'success');
+
+                // ☁️ رفع البيانات المستعادة على Firebase تلقائياً
+                // نمرر parsedData مباشرة لأن db في الذاكرة لسه فاضي قبل الريلود
+                try {
+                    if (typeof CloudSync !== 'undefined' && CloudSync.isReady && CloudSync.isReady()) {
+                        showNotification('☁️ جاري مزامنة البيانات مع السحاب... يرجى الانتظار', 'info');
+                        const result = await CloudSync.forceFullUpload();
+                        showNotification(`✅ تمت المزامنة! تم رفع ${result.uploaded ?? result.total} سجل للسحاب`, 'success');
+                    } else if (typeof CloudSync !== 'undefined' && CloudSync.init) {
+                        // السحاب لم يتصل بعد — ننتظر الاتصال ثم نرفع
+                        showNotification('☁️ جاري الاتصال بالسحاب ورفع البيانات...', 'info');
+                        await new Promise(resolve => {
+                            const maxWait = 20000;
+                            const start = Date.now();
+                            const check = setInterval(async () => {
+                                if (CloudSync.isReady && CloudSync.isReady()) {
+                                    clearInterval(check);
+                                    try {
+                                        const result = await CloudSync.forceFullUpload();
+                                        showNotification(`✅ تمت المزامنة! تم رفع ${result.uploaded ?? result.total} سجل`, 'success');
+                                    } catch (e) { console.warn('[Import→Cloud] forceFullUpload failed:', e); }
+                                    resolve();
+                                } else if (Date.now() - start > maxWait) {
+                                    clearInterval(check);
+                                    showNotification('⚠️ تعذّر الاتصال بالسحاب — البيانات محفوظة محلياً فقط.', 'warning');
+                                    resolve();
+                                }
+                            }, 800);
+                        });
+                    } else {
+                        showNotification('⚠️ السحاب غير متاح — البيانات محفوظة محلياً فقط.', 'warning');
+                    }
+                } catch (syncErr) {
+                    console.warn('[Import→Cloud] sync error:', syncErr);
+                    showNotification('⚠️ تم الاستعادة محلياً لكن تعذّرت المزامنة مع السحاب.', 'warning');
+                }
+
+                setTimeout(() => location.reload(), 3000);
             } else {
                 throw new Error('تعذّر استيراد البيانات — الملف لا يحتوي على بيانات صالحة');
             }
@@ -9906,7 +10221,7 @@ async function importData(input) {
                 '❌ فشل استيراد النسخة الاحتياطية\n\n' +
                 'السبب: ' + errMsg + '\n\n' +
                 'تأكد من الآتي:\n' +
-                '• الملف هو data.js الذي صدّره مستر عبد الله عواد مباشرة\n' +
+                '• الملف هو data.js الذي صدّره نظام إدارة الدروس مباشرة\n' +
                 '• اسم الملف لا يهم — data.js أو data (2).js كلها مقبولة\n' +
                 '• لم يتم فتح الملف وتعديله يدوياً\n' +
                 '• حجم الملف أكبر من 1 كيلوبايت'
@@ -9920,6 +10235,68 @@ async function importData(input) {
 }
 
 const APP_THEME_KEY = 'alamin_theme';
+const APP_THEMES = [
+    { id: 'academic', name: 'أكاديمي', swatch: 'academic' },
+    { id: 'emerald', name: 'زمردي', swatch: 'emerald' },
+    { id: 'sunset', name: 'دافئ', swatch: 'sunset' },
+    { id: 'midnight', name: 'ليلي', swatch: 'midnight' }
+];
+
+function applyAppTheme(themeId = 'academic') {
+    const selected = APP_THEMES.find(t => t.id === themeId) ? themeId : 'academic';
+    if (selected === 'academic') {
+        document.body.removeAttribute('data-theme');
+    } else {
+        document.body.dataset.theme = selected;
+    }
+    localStorage.setItem(APP_THEME_KEY, selected);
+
+    document.querySelectorAll('.theme-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === selected);
+    });
+}
+
+function initThemeSwitcher() {
+    if (document.getElementById('theme-switcher')) return;
+
+    const headerActions = document.querySelector('header > div:last-child');
+    if (!headerActions) return;
+
+    const switcher = document.createElement('div');
+    switcher.id = 'theme-switcher';
+    switcher.className = 'theme-switcher';
+    switcher.innerHTML = `
+        <button class="btn theme-trigger" type="button" title="تغيير الألوان">
+            <i class="fas fa-palette"></i>
+        </button>
+        <div class="theme-menu">
+            ${APP_THEMES.map(theme => `
+                <button class="theme-option" type="button" data-theme="${theme.id}">
+                    <span>${theme.name}</span>
+                    <span class="theme-swatch ${theme.swatch}"></span>
+                </button>
+            `).join('')}
+        </div>
+    `;
+
+    headerActions.insertBefore(switcher, headerActions.firstChild);
+    switcher.querySelector('.theme-trigger').addEventListener('click', (event) => {
+        event.stopPropagation();
+        switcher.classList.toggle('open');
+    });
+
+    switcher.querySelectorAll('.theme-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            applyAppTheme(btn.dataset.theme);
+            switcher.classList.remove('open');
+            showNotification(`تم تطبيق ثيم ${btn.innerText.trim()}`, 'success');
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!switcher.contains(event.target)) switcher.classList.remove('open');
+    });
+}
 
 const DAY_NIGHT_THEMES = [
     { id: 'morning', name: '\u0627\u0644\u0648\u0636\u0639 \u0627\u0644\u0635\u0628\u0627\u062d\u064a', swatch: 'morning' },
@@ -10125,51 +10502,72 @@ function initExperienceEnhancements() {
 function getProgramProfile() {
     if (!db._settings.appProfile) {
         db._settings.appProfile = {
-            centerName: 'مستر عبد الله عواد',
-            teacherName: 'مستر عبد الله عواد',
-            specialization: 'أستاذ التاريخ والجغرافيا',
-            phone: ''
+            centerName: 'سنتر البنا',
+            appTitle: 'نظام إدارة الدروس',
+            teacherName: 'سنتر البنا',
+            specialization: 'لإعداد الأوائل',
+            phone: '',
+            absenceMessage: 'السلام عليكم ورحمة الله وبركاته،\nنحيط سيادتكم علماً بأن الطالب/ـة {StudentName} لم يحضر/تحضر الحصة الدراسية اليوم.\nنرجو التكرم بمتابعة سبب الغياب.',
+            reportMessage: 'السلام عليكم ورحمة الله وبركاته،\nنرفق لسيادتكم تقرير الأداء الشهري للطالب/ـة {StudentName}.\nنسأل الله لابنكم/ابنتكم دوام التوفيق والنجاح.'
         };
     }
-    // ✅ توافق مع الملفات القديمة: تأكد من وجود التخصص دائماً
+    // ✅ توافق مع الملفات القديمة: تأكد من وجود الحقول الجديدة دائماً
     if (!db._settings.appProfile.specialization) {
-        db._settings.appProfile.specialization = 'أستاذ التاريخ والجغرافيا';
+        db._settings.appProfile.specialization = 'لإعداد الأوائل';
     }
-
-    // 🔧 إصلاح: تصحيح تلقائي لأي قيمة خاطئة محفوظة سابقاً باسم المدرّس
-    // (مثل "مدير عام"/"المدير العام" أو حقل فارغ). اسم المدرّس الصحيح دائماً
-    // هو "مستر عبد الله عواد" — لا يجوز أن يظهر أي لقب وظيفي عام مكانه.
-    // ملحوظة: التحقق يعتمد على وجود كلمة "مدير" كجزء من النص فقط (بدون تقييد
-    // بما يليها) حتى يلتقط كل الصيغ: "مدير"، "المدير"، "مدير عام"، "المدير العام".
-    const isBadValue = (v) => !v || /مدير/.test(String(v).trim());
-    let fixedSomething = false;
-    if (isBadValue(db._settings.appProfile.teacherName)) {
-        db._settings.appProfile.teacherName = 'مستر عبد الله عواد';
-        fixedSomething = true;
+    if (!db._settings.appProfile.appTitle) {
+        db._settings.appProfile.appTitle = db._settings.appProfile.centerName || 'نظام إدارة الدروس';
     }
-    if (isBadValue(db._settings.appProfile.specialization)) {
-        db._settings.appProfile.specialization = 'أستاذ التاريخ والجغرافيا';
-        fixedSomething = true;
+    if (db._settings.appProfile.absenceMessage === undefined) {
+        db._settings.appProfile.absenceMessage = 'السلام عليكم ورحمة الله وبركاته،\nنحيط سيادتكم علماً بأن الطالب/ـة {StudentName} لم يحضر/تحضر الحصة الدراسية اليوم.\nنرجو التكرم بمتابعة سبب الغياب.';
     }
-    if (fixedSomething) {
-        // احفظ التصحيح فوراً حتى لا يتكرر الخطأ في كل مرة يُفتح فيها التطبيق
-        try { localStorage.setItem('edu_master_settings', JSON.stringify(db._settings)); } catch (e) {}
+    if (db._settings.appProfile.reportMessage === undefined) {
+        db._settings.appProfile.reportMessage = 'السلام عليكم ورحمة الله وبركاته،\nنرفق لسيادتكم تقرير الأداء الشهري للطالب/ـة {StudentName}.\nنسأل الله لابنكم/ابنتكم دوام التوفيق والنجاح.';
+    }
+    if (!db._settings.appProfile.teacherName || db._settings.appProfile.teacherName === 'نظام إدارة الدروس' || db._settings.appProfile.teacherName === 'سنتر العباقرة' || db._settings.appProfile.teacherName === 'مستر محمد نبيل' || db._settings.appProfile.teacherName === 'سنتر البنا لإعداد الأوائل') {
+        db._settings.appProfile.teacherName = 'سنتر البنا';
+    }
+    if (!db._settings.appProfile.centerName || db._settings.appProfile.centerName === 'نظام إدارة الدروس' || db._settings.appProfile.centerName === 'سنتر العباقرة' || db._settings.appProfile.centerName === 'مستر محمد نبيل' || db._settings.appProfile.centerName === 'سنتر البنا لإعداد الأوائل') {
+        db._settings.appProfile.centerName = 'سنتر البنا';
     }
 
     return db._settings.appProfile;
 }
 
-// نص هوية المدرّس الجاهز للإضافة أسفل أي رسالة (واتساب / SMS)
-// 🔧 إصلاح نهائي: الاسم مثبّت مباشرة "مستر عبد الله عواد" ولا يعتمد على
-// أي قيمة محفوظة في الإعدادات، حتى لا يظهر أبداً أي لقب خاطئ (مثل "المدير العام")
-// بغض النظر عمّا هو مخزَّن. التخصص وحده قابل للتخصيص من شاشة الإعدادات.
-const TEACHER_FIXED_NAME = 'مستر عبد الله عواد';
-function getTeacherSignatureLine() {
+/** يعيد اسم المدرس المحفوظ في الإعدادات، أو نص بديل إن لم يُعيَّن */
+function getTeacherDisplayName() {
     const profile = getProgramProfile();
-    const spec = profile.specialization || 'أستاذ التاريخ والجغرافيا';
-    // توقيع أنيق بخط فاصل يميّز نهاية الرسالة
-    return `\n\n━━━━━━━━━━━━━━\n*${TEACHER_FIXED_NAME}*\n${spec}`;
+    return (profile.teacherName && profile.teacherName.trim()) ? profile.teacherName.trim() : 'سنتر البنا';
 }
+
+/** يعيد نص رسالة الغياب بعد استبدال {StudentName} باسم الطالب */
+function buildAbsenceMessageForStudent(studentName) {
+    const profile = getProgramProfile();
+    const template = profile.absenceMessage || 'السلام عليكم،\nالطالب/ـة {StudentName} لم يحضر اليوم.';
+    return template.replace(/\{StudentName\}/g, studentName);
+}
+
+/** يعيد نص رسالة تقرير الأداء بعد استبدال {StudentName} باسم الطالب */
+function buildReportMessageForStudent(studentName) {
+    const profile = getProgramProfile();
+    const template = profile.reportMessage || 'السلام عليكم،\nتقرير أداء الطالب/ـة {StudentName}.';
+    return template.replace(/\{StudentName\}/g, studentName);
+}
+
+// نص هوية النظام الجاهز للإضافة أسفل أي رسالة (واتساب / SMS)
+// ✅ تم تحديثه: الاسم يُقرأ الآن من إعدادات البرنامج (اسم المدرس).
+function getTeacherSignatureLine() {
+    const name = getTeacherDisplayName();
+    const profile = getProgramProfile();
+    const spec = profile.specialization || 'لإعداد الأوائل';
+    return `\n\n━━━━━━━━━━━━━━\n*${name}*\n${spec}`;
+}
+// للتوافق مع الأكواد القديمة التي تستخدم TEACHER_FIXED_NAME مباشرة
+// يُعاد تعريفه كدالة getter بدلاً من ثابت
+Object.defineProperty(window, 'TEACHER_FIXED_NAME', {
+    get() { return getTeacherDisplayName(); },
+    configurable: true
+});
 
 // ============================================================
 //  نظام موحّد لصياغة رسائل أولياء الأمور — هوية لغوية واحدة للمنصة
@@ -10184,14 +10582,14 @@ function getTeacherSignatureLine() {
 // ============================================================
 function buildFormalParentMessage({ noticeType = '', bodyLines = [], closing = null } = {}) {
     const intro =
-`السلام عليكم ورحمة الله وبركاته،
+        `السلام عليكم ورحمة الله وبركاته،
 يسرنا أن نطلع سيادتكم على آخر مستجدات المستوى الدراسي لابنكم/ابنتكم:`;
 
     const typeLine = noticeType ? `📌 *نوع الإشعار:* ${noticeType}\n` : '';
     const body = (Array.isArray(bodyLines) ? bodyLines : [String(bodyLines || '')]).join('\n');
 
     const defaultClosing =
-`نسأل الله لابنكم/ابنتكم دوام التوفيق والنجاح، ونؤكد حرصنا الدائم على متابعة المستوى الدراسي والتواصل المستمر مع أولياء الأمور بما يحقق أفضل النتائج.`;
+        `نسأل الله لابنكم/ابنتكم دوام التوفيق والنجاح، ونؤكد حرصنا الدائم على متابعة المستوى الدراسي والتواصل المستمر مع أولياء الأمور بما يحقق أفضل النتائج.`;
 
     return `${intro}\n\n${typeLine}${body}\n\n${closing || defaultClosing}${getTeacherSignatureLine()}`;
 }
@@ -10210,7 +10608,7 @@ function getFinancialEditLog() {
 function _currentEditorLabel() {
     const profile = getProgramProfile();
     const roleLabel = (typeof RBAC !== 'undefined' && RBAC.isAdmin && RBAC.isAdmin()) ? 'المشرف' : 'مستخدم';
-    return `${roleLabel} — ${profile.teacherName || 'مستر عبد الله عواد'}`;
+    return `${roleLabel} — ${getTeacherDisplayName()}`;
 }
 
 /**
@@ -10249,7 +10647,8 @@ function recordArchivedMonthPayment(cycleId, studentId) {
         date: cycleDate.toISOString(),
         category: 'اشتراك شهري',
         cycleId: cycle.id,
-        archivedEdit: true // ✅ علامة تدل أن هذا السداد تم تسجيله بأثر رجعي من الأرشيف
+        archivedEdit: true, // ✅ علامة تدل أن هذا السداد تم تسجيله بأثر رجعي من الأرشيف
+        collectedBy: (typeof EmployeeAuth !== 'undefined') ? EmployeeAuth.getCurrentName() : undefined
     };
     db.payments.push(newPayment);
 
@@ -10314,7 +10713,7 @@ function viewFinancialEditLog() {
             th { background:#4f46e5; color:#fff; }
         </style></head><body>
         <h2><i class="fas fa-history"></i> سجل التعديلات المالية على الأرشيف</h2>
-        <div class="sub">${profile.teacherName || 'مستر عبد الله عواد'} — ${profile.specialization || 'أستاذ التاريخ والجغرافيا'}</div>
+        <div class="sub">${getTeacherDisplayName()} — ${profile.specialization || 'لإعداد الأوائل'}</div>
         <table>
             <thead><tr>
                 <th>اسم الطالب</th><th>الشهر / الدورة</th><th>الحالة القديمة</th><th>الحالة الجديدة</th>
@@ -10331,16 +10730,20 @@ function viewFinancialEditLog() {
 
 function applyProgramProfile() {
     const profile = getProgramProfile();
-    document.title = `${profile.centerName} | نظام الإدارة`;
+    const appTitle = (profile.appTitle && profile.appTitle.trim()) ? profile.appTitle.trim() : (profile.centerName || 'نظام إدارة الدروس');
+    document.title = `${appTitle} | نظام الإدارة`;
+
+    const splashTitle = document.getElementById('splash-app-title');
+    if (splashTitle) splashTitle.innerText = appTitle;
 
     const logo = document.querySelector('.logo');
-    if (logo) logo.innerHTML = `<i class="fas fa-book-open"></i> ${profile.centerName || 'مستر عبد الله عواد'}`;
+    if (logo) logo.innerHTML = `<i class="fas fa-book-open"></i> ${profile.centerName || 'سنتر البنا'}`;
 
     const userName = document.querySelector('.user-profile span');
-    if (userName) userName.innerText = profile.teacherName || 'مستر عبد الله عواد';
+    if (userName) userName.innerText = getTeacherDisplayName();
 
     const userSpec = document.querySelector('.user-profile .user-specialization');
-    if (userSpec) userSpec.innerText = profile.specialization || 'أستاذ التاريخ والجغرافيا';
+    if (userSpec) userSpec.innerText = profile.specialization || 'لإعداد الأوائل';
 }
 
 function initProgramSettings() {
@@ -10387,12 +10790,16 @@ function ensureSettingsSection() {
                     <input id="settings-center-name" class="form-input" type="text">
                 </div>
                 <div class="settings-row">
-                    <label for="settings-teacher-name">اسم المستخدم / المدير</label>
-                    <input id="settings-teacher-name" class="form-input" type="text">
+                    <label for="settings-app-title">اسم البرنامج في شاشة الدخول</label>
+                    <input id="settings-app-title" class="form-input" type="text" placeholder="مثال: نظام إدارة الدروس">
+                </div>
+                <div class="settings-row">
+                    <label for="settings-teacher-name">اسم المدرس</label>
+                    <input id="settings-teacher-name" class="form-input" type="text" placeholder="مثال: محمد أحمد">
                 </div>
                 <div class="settings-row">
                     <label for="settings-specialization">التخصص / الوظيفة</label>
-                    <input id="settings-specialization" class="form-input" type="text" placeholder="مثال: أستاذ التاريخ والجغرافيا">
+                    <input id="settings-specialization" class="form-input" type="text" placeholder="مثال: لإعداد الأوائل">
                 </div>
                 <div class="settings-row">
                     <label for="settings-phone">رقم التواصل</label>
@@ -10400,6 +10807,23 @@ function ensureSettingsSection() {
                 </div>
                 <button class="btn btn-primary" onclick="saveProgramSettings()">
                     <i class="fas fa-save"></i> حفظ الإعدادات
+                </button>
+            </div>
+
+            <div class="settings-panel" style="grid-column: span 2;">
+                <h3><i class="fas fa-comment-alt"></i> نصوص الرسائل</h3>
+                <div class="settings-row">
+                    <label for="settings-absence-message">نص رسالة الغياب اليومية</label>
+                    <small style="color:var(--text-muted); display:block; margin-bottom:0.5rem;">استخدم <code>{StudentName}</code> ليتم استبداله باسم الطالب تلقائياً عند الإرسال.</small>
+                    <textarea id="settings-absence-message" class="form-input" style="height:130px; resize:vertical; font-size:0.9rem;"></textarea>
+                </div>
+                <div class="settings-row" style="margin-top:1rem;">
+                    <label for="settings-report-message">نص رسالة تقرير الأداء الشهري</label>
+                    <small style="color:var(--text-muted); display:block; margin-bottom:0.5rem;">استخدم <code>{StudentName}</code> ليتم استبداله باسم الطالب تلقائياً عند الإرسال.</small>
+                    <textarea id="settings-report-message" class="form-input" style="height:130px; resize:vertical; font-size:0.9rem;"></textarea>
+                </div>
+                <button class="btn btn-primary" style="margin-top:1rem;" onclick="saveProgramSettings()">
+                    <i class="fas fa-save"></i> حفظ الرسائل
                 </button>
             </div>
 
@@ -10449,11 +10873,15 @@ function ensureSettingsSection() {
                     <button class="btn btn-primary" onclick="openPasswordManagement()">
                         <i class="fas fa-key"></i> إدارة كلمات المرور
                     </button>
+                    <button class="btn btn-primary" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);" onclick="openEmployeeManagement()">
+                        <i class="fas fa-users-cog"></i> إدارة المستخدمين (الموظفين)
+                    </button>
                     <button class="btn settings-choice" onclick="toggleDayNightMode(); renderProgramSettings();">
                         <i class="fas fa-adjust"></i> تبديل الوضع
                     </button>
                 </div>
                 <p class="settings-note">يمكنك تغيير كلمة مرور الدخول، الخزينة، فك الحماية، وأكواد الموظفين.</p>
+                <p class="settings-note">أضف مستخدمين بأسمائهم (مثل: محمد، أحمد) — سيُطلب من كل موظف اختيار اسمه عند الدخول، ويُسجَّل اسمه تلقائياً مع كل عملية تحصيل مالي.</p>
             </div>
 
             <div class="settings-panel">
@@ -10522,6 +10950,7 @@ function renderProgramSettings() {
 
     const profile = getProgramProfile();
     const center = document.getElementById('settings-center-name');
+    const appTitle = document.getElementById('settings-app-title');
     const teacher = document.getElementById('settings-teacher-name');
     const specialization = document.getElementById('settings-specialization');
     const phone = document.getElementById('settings-phone');
@@ -10531,6 +10960,8 @@ function renderProgramSettings() {
     const zoom = document.getElementById('settings-zoom-label');
 
     if (center) center.value = profile.centerName || '';
+    if (appTitle) appTitle.value = profile.appTitle || profile.centerName || '';
+    // ✅ اسم المدرس الآن يُقرأ من الإعدادات مباشرة (يعبّئه المدير بنفسه)
     if (teacher) teacher.value = profile.teacherName || '';
     if (specialization) specialization.value = profile.specialization || '';
     if (phone) phone.value = profile.phone || '';
@@ -10538,6 +10969,12 @@ function renderProgramSettings() {
     if (commission) commission.value = db.settings.centerCommissionPercent || 0;
     if (printWidth) printWidth.value = localStorage.getItem('alamin_print_width') || '80mm';
     if (zoom) zoom.innerText = `${Math.round(appZoom * 100)}%`;
+
+    // ✅ تعبئة حقول نصوص الرسائل
+    const absenceMsgEl = document.getElementById('settings-absence-message');
+    const reportMsgEl = document.getElementById('settings-report-message');
+    if (absenceMsgEl) absenceMsgEl.value = profile.absenceMessage || '';
+    if (reportMsgEl) reportMsgEl.value = profile.reportMessage || '';
 
     const activeTheme = normalizeAppTheme(localStorage.getItem(APP_THEME_KEY) || 'morning');
     document.getElementById('settings-morning-btn')?.classList.toggle('active', activeTheme === 'morning');
@@ -10557,10 +10994,18 @@ function renderProgramSettings() {
 
 function saveProgramSettings() {
     const profile = getProgramProfile();
-    profile.centerName = document.getElementById('settings-center-name')?.value.trim() || 'مستر عبد الله عواد';
-    profile.teacherName = document.getElementById('settings-teacher-name')?.value.trim() || 'مستر عبد الله عواد';
-    profile.specialization = document.getElementById('settings-specialization')?.value.trim() || 'أستاذ التاريخ والجغرافيا';
+    profile.centerName = document.getElementById('settings-center-name')?.value.trim() || 'نظام إدارة الدروس';
+    profile.appTitle = document.getElementById('settings-app-title')?.value.trim() || profile.centerName || 'نظام إدارة الدروس';
+    // ✅ اسم المدرس يُحفظ من حقل الإدخال مباشرة (يُدخله المدير مرة واحدة)
+    profile.teacherName = document.getElementById('settings-teacher-name')?.value.trim() || '';
+    profile.specialization = document.getElementById('settings-specialization')?.value.trim() || 'لإعداد الأوائل';
     profile.phone = document.getElementById('settings-phone')?.value.trim() || '';
+
+    // ✅ حفظ نصوص الرسائل
+    const absenceMsg = document.getElementById('settings-absence-message')?.value || '';
+    const reportMsg = document.getElementById('settings-report-message')?.value || '';
+    if (absenceMsg) profile.absenceMessage = absenceMsg;
+    if (reportMsg) profile.reportMessage = reportMsg;
 
     const monthlyFee = parseFloat(document.getElementById('settings-monthly-fee')?.value || '0');
     const commission = parseFloat(document.getElementById('settings-commission')?.value || '0');
@@ -10570,6 +11015,7 @@ function saveProgramSettings() {
     const printWidth = document.getElementById('settings-print-width')?.value || '80mm';
     localStorage.setItem('alamin_print_width', printWidth);
     localStorage.setItem('edu_master_settings', JSON.stringify(db._settings));
+    db.save();
 
     applyProgramProfile();
     updateExperienceSummary();
@@ -10580,10 +11026,10 @@ function saveProgramSettings() {
 function gradeIdToSystemCode(rawId) {
     const g = String(rawId || '').trim();
     const TABLE = {
-        '301':'1','302':'2','303':'3',
-        '201':'prep1','202':'prep2','203':'prep3',
-        '101':'prim1','102':'prim2','103':'prim3',
-        '104':'prim4','105':'prim5','106':'prim6',
+        '301': '1', '302': '2', '303': '3',
+        '201': 'prep1', '202': 'prep2', '203': 'prep3',
+        '101': 'prim1', '102': 'prim2', '103': 'prim3',
+        '104': 'prim4', '105': 'prim5', '106': 'prim6',
     };
     if (TABLE[g]) return TABLE[g];
     // لو كان systemCode بالفعل (مثل '3', 'prep3') يرجعه كما هو
@@ -10685,6 +11131,8 @@ async function importPlatformCourseCodes() {
 function printPlatformCourseCards() {
     const rows = getPlatformCodesFiltered();
     if (!rows.length) return showNotification('لا توجد أكواد للطباعة', 'warning');
+    const profile = (typeof getProgramProfile === 'function') ? getProgramProfile() : {};
+    const teacherName = (typeof getTeacherDisplayName === 'function') ? getTeacherDisplayName() : (profile.teacherName || 'نظام إدارة الدروس');
     const html = `
     <html dir="rtl"><head><title>أكواد المنصة</title>
     <style>
@@ -10701,7 +11149,7 @@ function printPlatformCourseCards() {
       <div class="grid">
         ${rows.map(item => `
           <div class="card">
-            <div class="title">مستر عبد الله عواد - كود تفعيل كورس</div>
+            <div class="title">${teacherName} - كود تفعيل كورس</div>
             <div class="student">${item.linkedStudentName || 'طالب غير محدد'}</div>
             <div class="meta">${platformGradeLabel(item.grade)} | ${item.courseTitle || '-'}</div>
             <div class="code">${item.code || '-'}</div>
@@ -10720,6 +11168,60 @@ async function exportStudentsToFirebase() {
     const btn = document.getElementById('btn-export-firebase');
     if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-ban"></i> غير متاح'; }
 }
+
+// ☁️ رفع كل البيانات الحالية للسحاب يدوياً (الزرار الموجود في قسم الاحتياطي)
+async function forceCloudUploadFromMemory() {
+    const btn = document.getElementById('btn-force-cloud-upload');
+    const statusBox = document.getElementById('cloud-upload-status');
+
+    const setStatus = (msg, type) => {
+        if (!statusBox) return;
+        statusBox.style.display = 'block';
+        const colors = {
+            info: { bg: 'rgba(14,165,233,.1)', color: '#0284c7', border: 'rgba(14,165,233,.25)' },
+            success: { bg: 'rgba(16,185,129,.1)', color: '#059669', border: 'rgba(16,185,129,.25)' },
+            warning: { bg: 'rgba(245,158,11,.1)', color: '#d97706', border: 'rgba(245,158,11,.25)' },
+            error: { bg: 'rgba(239,68,68,.1)', color: '#dc2626', border: 'rgba(239,68,68,.25)' },
+        };
+        const c = colors[type] || colors.info;
+        statusBox.style.cssText = `display:block; padding:.9rem 1.2rem; border-radius:12px; margin-bottom:1.2rem; font-weight:600; font-size:.9rem; text-align:center; background:${c.bg}; color:${c.color}; border:1px solid ${c.border};`;
+        statusBox.innerHTML = msg;
+    };
+
+    if (typeof CloudSync === 'undefined') {
+        setStatus('⚠️ السحاب غير متاح في هذا الجهاز.', 'warning');
+        return;
+    }
+
+    if (!CloudSync.isReady || !CloudSync.isReady()) {
+        setStatus('⏳ السحاب لم يتصل بعد — يرجى الانتظار ثم المحاولة مرة أخرى.', 'warning');
+        return;
+    }
+
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الرفع...'; }
+    setStatus('☁️ جاري رفع البيانات للسحاب... يرجى الانتظار', 'info');
+
+    try {
+        const result = await CloudSync.forceFullUpload(); // بدون parsedData = يرفع من الذاكرة بعد تصفير hashes
+        const uploaded = result.uploaded ?? (result.total - (result.failed || 0));
+        const failed = result.failed || 0;
+
+        if (failed === 0) {
+            setStatus(`✅ تمت المزامنة بنجاح! تم رفع ${uploaded} سجل للسحاب.`, 'success');
+            showNotification(`✅ تم رفع ${uploaded} سجل للسحاب بنجاح!`, 'success');
+        } else {
+            setStatus(`⚠️ تمت المزامنة جزئياً: ${uploaded} سجل رُفع، ${failed} فشل. راجع Console للتفاصيل.`, 'warning');
+            showNotification(`⚠️ رُفع ${uploaded} سجل — ${failed} سجل فشل.`, 'warning');
+        }
+    } catch (err) {
+        console.error('[forceCloudUploadFromMemory]', err);
+        setStatus(`❌ فشل الرفع: ${err.message || 'خطأ غير معروف'}`, 'error');
+        showNotification('❌ فشل الرفع للسحاب. راجع Console للتفاصيل.', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> رفع كل البيانات للسحاب الآن'; }
+    }
+}
+window.forceCloudUploadFromMemory = forceCloudUploadFromMemory;
 
 function saveTreasuryArchiveHour(hour) {
     const h = parseInt(hour, 10);
@@ -10757,13 +11259,10 @@ window.printPlatformCourseCards = printPlatformCourseCards;
 window.initPlatformCodesSection = initPlatformCodesSection;
 
 // Unified Application Entry Point
-// ⚠️ لا نستخدم window.onload لأنه ينتظر اكتمال كل موارد الصفحة (خطوط، مكتبات CDN خارجية...)
-// وعلى أجهزة بدون إنترنت حقيقي (مثل بعض أنظمة الهاردوير/الدونجل التي تظهر كمتصلة لكنها بلا DNS فعلي)
-// قد تتأخر أو تتجمّد محاولات تحميل هذه الموارد الخارجية لفترة طويلة، فيتجمد التطبيق معها.
-// DOMContentLoaded يعتمد فقط على تحليل HTML/JS المحلي، ولا ينتظر أي مورد خارجي أبداً.
-async function _bootMainApp() {
+window.onload = async () => {
     try {
         await ensureAppLoaded();
+        if (typeof applyProgramProfile === 'function') applyProgramProfile();
     } catch (err) {
         return;
     }
@@ -10828,14 +11327,7 @@ async function _bootMainApp() {
             }
         });
     }
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _bootMainApp);
-} else {
-    // الصفحة اتحللت خلاص (السكريبت نفسه بيتحمل في آخر body)
-    _bootMainApp();
-}
+};
 
 // Global Exposure (Ensure all functions are accessible from HTML)
 const exposures = {
@@ -10890,7 +11382,7 @@ const exposures = {
 
     // Data & Sync
     exportData, exportStudentsToFirebase, importData, importFromFolder, showCycleArchive, viewArchivedCycle,
-    applyAppTheme, toggleDayNightMode, initExperienceEnhancements, updateExperienceSummary,
+    applyAppTheme, toggleDayNightMode, initExperienceEnhancements, updateExperienceSummary, applyProgramProfile,
     initProgramSettings, renderProgramSettings, saveProgramSettings,
     prepareHandoverDownload: async () => {
         showNotification('جاري تجهيز نسخة كاملة للنقل...', 'info');
@@ -10917,7 +11409,7 @@ const exposures = {
         snapshot.ls = lsSnap;
 
         const dataJsContent = `/**
- * مستر عبد الله عواد Data Storage File - للبيع والنقل
+ * نظام إدارة الدروس Data Storage File - للبيع والنقل
  * Created: ${new Date().toLocaleString()}
  */
 window.edu_initial_data = ${JSON.stringify(snapshot, null, 4)};`;
@@ -11057,10 +11549,71 @@ function processManualEntry(context) {
 }
 
 // --- 9. ID Cards & Print Codes ---
+const ID_CARD_PRINT_SETTINGS_KEY = 'edu_idcard_print_settings';
+const DEFAULT_ID_CARD_PRINT_SETTINGS = {
+    mode: 'thermal',
+    width: '80',
+    height: '40',
+    font: '14',
+    barcodeHeight: '50'
+};
+let idCardPrintSettingsBound = false;
+
+function getIDCardPrintSettings() {
+    try {
+        return { ...DEFAULT_ID_CARD_PRINT_SETTINGS, ...(JSON.parse(localStorage.getItem(ID_CARD_PRINT_SETTINGS_KEY) || '{}') || {}) };
+    } catch (e) {
+        return { ...DEFAULT_ID_CARD_PRINT_SETTINGS };
+    }
+}
+
+function saveIDCardPrintSettings() {
+    const settings = {
+        mode: document.getElementById('print-type-main')?.value || DEFAULT_ID_CARD_PRINT_SETTINGS.mode,
+        width: document.getElementById('thermal-w')?.value || DEFAULT_ID_CARD_PRINT_SETTINGS.width,
+        height: document.getElementById('thermal-h')?.value || DEFAULT_ID_CARD_PRINT_SETTINGS.height,
+        font: document.getElementById('thermal-font')?.value || DEFAULT_ID_CARD_PRINT_SETTINGS.font,
+        barcodeHeight: document.getElementById('thermal-barcode-h')?.value || DEFAULT_ID_CARD_PRINT_SETTINGS.barcodeHeight
+    };
+    try { localStorage.setItem(ID_CARD_PRINT_SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { }
+    return settings;
+}
+
+function applyIDCardPrintSettings() {
+    const settings = getIDCardPrintSettings();
+    const typeEl = document.getElementById('print-type-main');
+    const widthEl = document.getElementById('thermal-w');
+    const heightEl = document.getElementById('thermal-h');
+    const fontEl = document.getElementById('thermal-font');
+    const barcodeEl = document.getElementById('thermal-barcode-h');
+
+    if (typeEl) typeEl.value = settings.mode;
+    if (widthEl) widthEl.value = settings.width;
+    if (heightEl) heightEl.value = settings.height;
+    if (fontEl) fontEl.value = settings.font;
+    if (barcodeEl) barcodeEl.value = settings.barcodeHeight;
+    toggleThermalOptions(false);
+}
+
+function bindIDCardPrintSettings() {
+    if (idCardPrintSettingsBound) return;
+    const ids = ['print-type-main', 'thermal-w', 'thermal-h', 'thermal-font', 'thermal-barcode-h'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('change', saveIDCardPrintSettings);
+        el.addEventListener('input', saveIDCardPrintSettings);
+    });
+    idCardPrintSettingsBound = true;
+}
+
 function initIDCardsSection() {
     const groupSelect = document.getElementById('idcard-group-select');
     const studentSelect = document.getElementById('idcard-student-select');
     if (!groupSelect || !studentSelect) return;
+
+    bindIDCardPrintSettings();
+    applyIDCardPrintSettings();
 
     // Filter by current grade
     const gradeGroups = db.groups.filter(g => g.grade == currentGrade);
@@ -11077,10 +11630,11 @@ function initIDCardsSection() {
         sortedStudents.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 }
 
-function toggleThermalOptions() {
+function toggleThermalOptions(shouldSave = true) {
     const type = document.getElementById('print-type-main').value;
     const panel = document.getElementById('thermal-config-panel');
     if (panel) panel.style.display = (type === 'thermal') ? 'block' : 'none';
+    if (shouldSave) saveIDCardPrintSettings();
 }
 
 function printGroupCodes() {
@@ -11104,11 +11658,11 @@ function printStudentCode() {
 }
 
 function generatePrintableIDCards(students, mode = 'normal') {
+    saveIDCardPrintSettings();
     const printWindow = window.open('', '_blank');
     const isThermal = mode === 'thermal';
     const profile = (typeof getProgramProfile === 'function') ? getProgramProfile() : {};
-    const teacherName = profile.teacherName || 'مستر عبد الله عواد';
-    const teacherSpec = profile.specialization || 'أستاذ التاريخ والجغرافيا';
+    // ملحوظة: تم حذف اسم/تخصص المدرّس من بطاقات الطباعة بناءً على طلب المستخدم
 
     // Get Thermal Config
     const tw = document.getElementById('thermal-w')?.value || 80;
@@ -11131,19 +11685,18 @@ function generatePrintableIDCards(students, mode = 'normal') {
             '.barcode-area { margin-top: 5px; width: 100%; display: flex; justify-content: center; }' +
             '.barcode { width: 95% !important; max-width: ' + (tw - 10) + 'mm; }'
             :
-            '@page { size: A4; margin: 8mm; }' +
-            '.page { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: min-content; gap: 4mm; page-break-after: always; }' +
-            '.card { border: 1px solid #cbd5e1; border-radius: 10px; padding: 0; min-height: 56mm; display: flex; flex-direction: column; position: relative; box-sizing: border-box; background: #fff; page-break-inside: avoid; break-inside: avoid; overflow: visible; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }' +
+            '.page { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; page-break-after: always; }' +
+            '.card { border: 1px solid #cbd5e1; border-radius: 10px; padding: 0; height: 55mm; display: flex; flex-direction: column; position: relative; box-sizing: border-box; background: #fff; page-break-inside: avoid; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }' +
             '.card-header { background: linear-gradient(135deg, #4f46e5, #4338ca); color: #fff; padding: 8px 12px; }' +
-            '.card-header .teacher-name { font-weight: 800; font-size: 0.95rem; line-height: 1.3; }' +
+            '.card-header .teacher-name { font-weight: 800; font-size: 0.95rem; line-height: 1.3; margin-bottom: 2px; }' +
             '.card-header .teacher-spec { font-size: 0.65rem; opacity: 0.9; }' +
             '.card-body { padding: 10px 12px; display: flex; flex-direction: column; flex: 1; }' +
             '.info-row { font-size: 0.85rem; margin-bottom: 5px; color: #475569; }' +
             '.info-row b { color: #1e293b; }' +
-            '.barcode-area { margin-top: auto; text-align: center; background: #f8fafc; padding: 5px; border-radius: 5px; padding-bottom: 10px; }' +
-            '.barcode { width: 100% !important; height: auto !important; display: block !important; }' +
+            '.barcode-area { margin-top: auto; text-align: center; background: #f8fafc; padding: 5px; border-radius: 5px; }' +
+            '.barcode { width: 100% !important; height: auto !important; }' +
             '.grade-badge { position: absolute; top: 8px; left: 12px; font-size: 0.6rem; background: rgba(255,255,255,0.2); color: #fff; padding: 2px 8px; border-radius: 4px; }' +
-            '@media print { body { padding: 0; margin: 0; } .page { padding: 0; } }'
+            '@media print { body { padding: 0; } .page { padding: 10mm; } }'
         ) +
         '</style></head><body>';
 
@@ -11155,9 +11708,6 @@ function generatePrintableIDCards(students, mode = 'normal') {
 
             html += '<div class="page">' +
                 '<div class="card">' +
-                '<div class="header-text">' + teacherName + '</div>' +
-                '<div class="header-spec">' + teacherSpec + '</div>' +
-
                 '<div style="font-size: ' + (tFont * 0.7) + 'px; color: #333; margin-bottom: 3px;">' + gradeName + '</div>' +
                 '<div class="student-name">' + s.name + '</div>' +
                 '<div class="info-row">المجموعة: ' + (groupObj ? groupObj.name : '---') + ' | الكود: ' + s.qrCode + '</div>' +
@@ -11183,9 +11733,8 @@ function generatePrintableIDCards(students, mode = 'normal') {
 
                 html += '<div class="card">' +
                     '<div class="card-header">' +
+                    '<div class="teacher-name">' + getTeacherDisplayName() + '</div>' +
                     '<div class="grade-badge">' + gradeName + '</div>' +
-                    '<div class="teacher-name">' + teacherName + '</div>' +
-                    '<div class="teacher-spec">' + teacherSpec + '</div>' +
                     '</div>' +
                     '<div class="card-body">' +
                     '<div style="background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 10px; border-right: 4px solid #4f46e5;">' +
@@ -11216,19 +11765,18 @@ function generatePrintableIDCards(students, mode = 'normal') {
         'function initBarcodes() {' +
         '  if (typeof JsBarcode === "undefined") { setTimeout(initBarcodes, 50); return; }' +
         '  const barcodes = document.querySelectorAll(".barcode");' +
-        '  barcodes.forEach(function(el) {' +
-        '    try {' +
-        '      JsBarcode(el).init();' +
-        '      var bbox = el.getBBox();' +
-        '      var pad = 4;' +
-        '      var vx = bbox.x - pad, vy = bbox.y - pad, vw = bbox.width + pad * 2, vh = bbox.height + pad * 2;' +
-        '      el.setAttribute("viewBox", vx + " " + vy + " " + vw + " " + vh);' +
+        '  barcodes.forEach(el => { try {' +
+        '    JsBarcode(el).init();' +
+        '    const w = el.getAttribute("width");' +
+        '    const h = el.getAttribute("height");' +
+        '    if (w && h) {' +
+        '      el.setAttribute("viewBox", "0 0 " + w + " " + h);' +
+        '      el.setAttribute("preserveAspectRatio", "xMidYMid meet");' +
         '      el.removeAttribute("width");' +
         '      el.removeAttribute("height");' +
-        '      el.setAttribute("preserveAspectRatio", "xMidYMid meet");' +
-        '    } catch(e){ console.error(e); }' +
-        '  });' +
-        '  setTimeout(function() { window.print(); window.close(); }, 500);' +
+        '    }' +
+        '  } catch(e){ console.error(e); } });' +
+        '  setTimeout(() => { window.print(); window.close(); }, 500);' +
         '}' +
         'window.onload = initBarcodes;' +
         '</script></body></html>';
@@ -11263,96 +11811,154 @@ function checkAppPassword(val) {
     // ── إصلاح تسجيل الدخول بدون إنترنت ──
     // يقرأ كلمة المرور من db._settings أولاً، ثم من localStorage كـ fallback
     // هذا يضمن عمل تسجيل الدخول حتى قبل اكتمال تحميل قاعدة البيانات
-    let adminPass = RBAC.PASSWORDS.admin; // القيمة الافتراضية 20062006
-    let employeePass = RBAC.PASSWORDS.employee; // القيمة الافتراضية 2446
-
+    let adminPass = RBAC.PASSWORDS.admin; // القيمة الافتراضية (20062006)
     if (db._settings && db._settings.globalPasswords && db._settings.globalPasswords.admin) {
         adminPass = db._settings.globalPasswords.admin;
-    }
-    if (db._settings && db._settings.globalPasswords && db._settings.globalPasswords.main) {
-        employeePass = db._settings.globalPasswords.main;
-    }
-    if (!(db._settings && db._settings.globalPasswords && db._settings.globalPasswords.admin && db._settings.globalPasswords.main)) {
+    } else {
         try {
             const saved = localStorage.getItem('_fallback_passwords');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (parsed && parsed.admin) adminPass = parsed.admin;
-                if (parsed && parsed.main) employeePass = parsed.main;
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
-    const isAdmin    = (val === adminPass);
+    let employeePass = RBAC.PASSWORDS.employee; // القيمة الافتراضية
+    if (db._settings && db._settings.globalPasswords && db._settings.globalPasswords.main) {
+        employeePass = db._settings.globalPasswords.main;
+    } else {
+        try {
+            const saved = localStorage.getItem('_fallback_passwords');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed && parsed.main) employeePass = parsed.main;
+            }
+        } catch (e) { }
+    }
+
+    const isAdmin = (val === adminPass);
     const isEmployee = (val === employeePass);
 
     if (isAdmin || isEmployee) {
-        // ✅ تسجيل دخول ناجح فوراً
+        // ✅ كلمة المرور العامة صحيحة — لكن ما زلنا محتاجين نعرف "مين"
+        // بالتحديد بيدخل (إذا كان نظام المستخدمين مُفعَّلاً) قبل استكمال
+        // الدخول، عشان نقدر نربط أي تحصيل مالي باسمه تلقائياً لاحقًا.
         const role = isAdmin ? 'admin' : 'employee';
         RBAC.login(role);
         RBAC.log('login', role);
 
-        const passwordScreen = document.getElementById('password-screen');
-        const loadingScreen  = document.getElementById('loading-screen');
-        const passwordInput  = document.getElementById('app-password-input');
-        const errorDiv       = document.getElementById('password-error');
-        const successDiv     = document.getElementById('password-success');
-
-        // إخفاء رسالة الخطأ فوراً
+        const errorDiv = document.getElementById('password-error');
+        const successDiv = document.getElementById('password-success');
         if (errorDiv) errorDiv.style.display = 'none';
-        
-        // إظهار رسالة النجاح فوراً
         if (successDiv) {
             successDiv.style.display = 'block';
             successDiv.innerHTML = `<i class="fas fa-check-circle"></i> تم تسجيل الدخول بنجاح!`;
         }
-        
-        // تعطيل حقل الإدخال
-        if (passwordInput) passwordInput.disabled = true;
-        if (passwordScreen) passwordScreen.style.display = 'none';
-        if (loadingScreen)  loadingScreen.style.display  = 'block';
+        const passwordInput = document.getElementById('app-password-input');
+        if (passwordInput) {
+            passwordInput.value = '';
+            passwordInput.disabled = true;
+        }
 
-        setTimeout(() => {
-            const splash = document.getElementById('app-splash');
-            if (splash) {
-                splash.style.opacity = '0';
-                setTimeout(() => { splash.style.display = 'none'; }, 1000);
-            }
-            RBAC.applyToUI();
-
-            // ✅ تم إلغاء أي مزامنة تلقائية بعد تسجيل الدخول — المزامنة تتم فقط يدوياً من أزرارها المخصصة
-            // الموظف يروح الحضور مباشرة، المشرف يروح الداشبورد
-            if (role === 'employee') {
-                setTimeout(() => showSection('attendance'), 2200);
-            }
-        }, 2000);
+        if (typeof proceedAfterPasswordSuccess === 'function') {
+            // user-management.js متاح: يقرر هو لو محتاج يعرض شاشة "من أنت؟"
+            setTimeout(() => proceedAfterPasswordSuccess(role), 400);
+        } else {
+            // تحميل قديم بدون user-management.js — نفس السلوك الأصلي تمامًا
+            finishLoginFlow(role);
+        }
     } else {
         // ❌ كلمة مرور خاطئة — فوراً عند عدم التطابق
         const err = document.getElementById('password-error');
         const successDiv = document.getElementById('password-success');
-        
+
         // إخفاء أي رسالة نجاح سابقة
         if (successDiv) successDiv.style.display = 'none';
 
-        // التحقق من الطول والقيمة (بدون افتراض طول ثابت، لأن كلمات المرور قابلة للتغيير الآن)
+        // التحقق من الطول والقيمة
         if (val.length > 0) {
-            const matchesAdmin    = adminPass.substring(0, val.length) === val;
-            const matchesEmployee = employeePass.substring(0, val.length) === val;
+            const expectedLength = val.length <= 4 ? 4 : 8;
+            const expectedPass = expectedLength === 4 ? employeePass : adminPass;
 
-            if (!matchesAdmin && !matchesEmployee) {
-                // لا يطابق بداية أي من الكلمتين → خطأ فوري
+            if (val !== expectedPass.substring(0, val.length)) {
+                // الباسورد غلط حتى لو مكتمل أم لا
                 if (err) {
                     err.style.display = 'block';
                     err.innerHTML = `<i class="fas fa-exclamation-triangle"></i> كلمة المرور غير صحيحة!`;
                 }
             } else {
-                // ما زال يكتب باسورد صحيح محتمل - إخفاء الخطأ
+                // ما زال يكتب الباسورد الصحيح - إخفاء الخطأ
                 if (err) err.style.display = 'none';
             }
         } else {
             // حقل فارغ - إخفاء الخطأ
             if (err) err.style.display = 'none';
         }
+    }
+}
+
+// يُستكمل بعد تحديد هوية الموظف (أو تلقائيًا لو مفيش نظام مستخدمين مُفعَّل)
+function finishLoginFlow(role) {
+    const passwordScreen = document.getElementById('password-screen');
+    const selectScreen = document.getElementById('employee-select-screen');
+    const loadingScreen = document.getElementById('loading-screen');
+
+    if (passwordScreen) passwordScreen.style.display = 'none';
+    if (selectScreen) selectScreen.style.display = 'none';
+    if (loadingScreen) loadingScreen.style.display = 'block';
+
+    setTimeout(() => {
+        const splash = document.getElementById('app-splash');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 1000);
+        }
+        RBAC.applyToUI();
+
+        if (typeof startBookingAutoSync === 'function') {
+            setTimeout(startBookingAutoSync, 3000);
+        }
+        // الموظف يروح الحضور مباشرة، المشرف يروح الداشبورد
+        if (role === 'employee') {
+            setTimeout(() => showSection('attendance'), 2200);
+        }
+
+        // ── فحص الـ URL: لو فيه ?student=ID → افتح ملف الطالب مباشرة ──
+        // (يُستخدَم عند مسح QR Code الخاص بالطالب من التليفون)
+        const _qrStudentId = new URLSearchParams(window.location.search).get('student');
+        if (_qrStudentId) {
+            const _qrDelay = role === 'employee' ? 3200 : 2600;
+            setTimeout(() => {
+                const sid = isNaN(_qrStudentId) ? _qrStudentId : Number(_qrStudentId);
+                if (typeof viewDetailedProfile === 'function') {
+                    showSection('students');
+                    setTimeout(() => viewDetailedProfile(sid), 500);
+                }
+                // إزالة الـ param من الـ URL بعد الفتح بدون إعادة تحميل الصفحة
+                try {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('student');
+                    window.history.replaceState({}, '', url.toString());
+                } catch (e) { }
+            }, _qrDelay);
+        }
+    }, 800);
+}
+window.finishLoginFlow = finishLoginFlow;
+
+async function waitForCloudTableSync(table) {
+    if (typeof CloudSync === 'undefined' || !CloudSync.isReady || !CloudSync.isReady() || !CloudSync.syncTableNow) {
+        return false;
+    }
+    try {
+        const syncPromise = CloudSync.syncTableNow(table);
+        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('timeout'), 1200));
+        const result = await Promise.race([syncPromise, timeoutPromise]);
+        return result !== 'timeout';
+    } catch (err) {
+        console.warn('[CloudSync] immediate table sync failed', table, err);
+        return false;
     }
 }
 
@@ -11364,7 +11970,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         splash.style.display = 'flex';
         // تأخير بسيط لضمان ظهور الـ splash قبل أي عملية ثقيلة
         await new Promise(r => setTimeout(r, 50));
-        document.getElementById('app-password-input')?.focus();
+        const passwordInput = document.getElementById('app-password-input');
+        if (passwordInput) {
+            passwordInput.value = '';
+            passwordInput.setAttribute('autocomplete', 'new-password');
+            passwordInput.focus();
+        }
     }
 
     try {
@@ -11374,7 +11985,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const passwords = db._settings && db._settings.globalPasswords;
             if (passwords) localStorage.setItem('_fallback_passwords', JSON.stringify(passwords));
-        } catch(e) {}
+        } catch (e) { }
+
+        // ── عرض قائمة السكرتارية مباشرة على شاشة الدخول الرئيسية ──
+        // (بجانب كلمة مرور المشرف) لو كان هناك حسابات سكرتير مُضافة
+        try {
+            if (typeof renderSplashSecretaryQuickSelect === 'function') renderSplashSecretaryQuickSelect();
+        } catch (e) { }
+
+        // ── بدء طبقة المزامنة السحابية (Firestore) — لا تمنع تشغيل
+        // النظام لو فشلت أو لو مفيش إنترنت؛ النظام يعمل محليًا زي العادة ──
+        if (typeof CloudSync !== 'undefined') {
+            await CloudSync.init().catch(e => console.warn('[CloudSync] init error', e));
+            if (typeof applyProgramProfile === 'function') applyProgramProfile();
+        }
     } catch (err) {
         // حتى لو فشل التحميل، تبقى شاشة المرور ظاهرة
         // المستخدم يدخل كلمة المرور وتعمل محلياً
@@ -11441,11 +12065,16 @@ async function handleStudentUpdate(printAfter = false) {
     student.parentPhone = parent;
 
     await StorageEngine.save('students', student);
+    const studentCloudOk = await waitForCloudTableSync('students');
 
     const idx = db.students.findIndex(s => s.id == id);
     if (idx !== -1) db.students[idx] = student;
 
-    showNotification('تم تحديث بيانات الطالب بنجاح');
+    if (studentCloudOk) {
+        showNotification('تم تحديث بيانات الطالب في قاعدة البيانات بنجاح', 'success');
+    } else {
+        showNotification('تم تحديث الطالب على الجهاز فقط، ولم يتم تأكيد رفعه لقاعدة البيانات.', 'warning');
+    }
     toggleModal('edit-student-modal', false);
     renderStudents();
 
@@ -11497,7 +12126,7 @@ function printAttendanceSheets() {
     <body>
         <div class="sheet-header">
             <h1>كشوف حضور وغياب الطلاب</h1>
-            <p>مستر عبد الله عواد - مستر عبد الله عواد</p>
+            <p>نظام إدارة الدروس</p>
             <p>السنة الدراسية: ${gradeName} | تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG')}</p>
         </div>
     `;
@@ -11585,7 +12214,7 @@ function printStudentsData() {
     <body onload="window.print()">
         <div class="header">
             <h1>سجل بيانات الطلاب التفصيلي</h1>
-            <p>مستر عبد الله عواد - مستر عبد الله عواد</p>
+            <p>نظام إدارة الدروس</p>
             <p>المرحلة: ${gradeBadge} | إجمالي الطلاب: ${students.length}</p>
         </div>
         <table>
@@ -11645,6 +12274,7 @@ navItems.forEach(item => {
 });
 
 function generatePrintCalibration() {
+    applyIDCardPrintSettings();
     const dummyStudent = {
         name: 'طالب تجريبي (معايرة)',
         qrCode: '1234567890123',
@@ -11652,8 +12282,7 @@ function generatePrintCalibration() {
         groupId: 'test'
     };
     const mode = document.getElementById('print-type-main').value;
-    const thermalWidth = document.getElementById('thermal-width-select')?.value || '80mm';
-    generatePrintableIDCards([dummyStudent], mode, thermalWidth);
+    generatePrintableIDCards([dummyStudent], mode);
 }// --- Shift Management Foundations ---
 let staffStream = null;
 
@@ -12000,7 +12629,7 @@ async function openPasswordManagement() {
         };
         db.save();
     } else if (!db._settings.globalPasswords.admin) {
-        // ترقية بيانات قديمة لا تحتوي على كلمة مرور المدير المخصّصة
+        // ترقية بيانات قديمة: أضف كود الأدمن الافتراضي إذا لم يكن محفوظاً بعد
         db._settings.globalPasswords.admin = '20062006';
         db.save();
     }
@@ -12023,8 +12652,8 @@ async function openPasswordManagement() {
         <div style="background: #fff8f8; border: 1px solid #fee2e2; padding: 1.5rem; border-radius: 20px; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);">
             <h4 style="color: var(--danger); margin-bottom: 1rem; font-size: 1.1rem;"><i class="fas fa-lock"></i> كلمات مرور النظام الأساسية</h4>
             <div style="display: grid; gap: 0.8rem;">
-                ${renderPasswordRow('دخول المدير (Admin)', 'admin', passwords.admin)}
-                ${renderPasswordRow('دخول الموظف', 'main', passwords.main)}
+                ${renderPasswordRow('كود الأدمن (تسجيل دخول المشرف)', 'admin', passwords.admin)}
+                ${renderPasswordRow('كود الموظف (دخول البرنامج الرئيسي)', 'main', passwords.main)}
                 ${renderPasswordRow('الخزينة والمالية', 'finance', passwords.finance)}
                 ${renderPasswordRow('فك حماية حذف العمليات', 'unlockPayment', passwords.unlockPayment)}
                 ${renderPasswordRow('إنهاء اشتراك الشهر', 'endSubscription', passwords.endSubscription)}
@@ -12032,9 +12661,9 @@ async function openPasswordManagement() {
         </div>
 
         <div style="background: #f0fdf4; border: 1px solid #dcfce7; padding: 1.5rem; border-radius: 20px; box-shadow: var(--shadow-sm);">
-            <h4 style="color: var(--accent); margin-bottom: 1rem; font-size: 1.1rem;"><i class="fas fa-user-shield"></i> أكواد دخول الموظفين (Staff)</h4>
+            <h4 style="color: var(--accent); margin-bottom: 1rem; font-size: 1.1rem;"><i class="fas fa-user-shield"></i> أكواد السكرتير (Staff)</h4>
             <div style="display: grid; gap: 0.8rem;">
-                ${(db.staff || []).map(s => renderPasswordRow(`كود الموظف: ${s.name}`, `staff_${s.id}`, s.pin)).join('')}
+                ${(db.staff || []).map(s => renderPasswordRow(`كود السكرتير: ${s.name}`, `staff_${s.id}`, s.pin)).join('')}
             </div>
         </div>
     `;
@@ -12122,7 +12751,7 @@ function updateToNewPassword() {
         db._settings.globalPasswords[activePasswordToEdit] = newVal;
         db.save();
         // ── حفظ فوري في localStorage للعمل بدون إنترنت ──
-        try { localStorage.setItem('_fallback_passwords', JSON.stringify(db._settings.globalPasswords)); } catch(e) {}
+        try { localStorage.setItem('_fallback_passwords', JSON.stringify(db._settings.globalPasswords)); } catch (e) { }
     }
 
     showNotification('✅ تم تحديث كلمة المرور بنجاح', 'success');
@@ -12181,4 +12810,3 @@ async function diagnoseStaffAuth(testPin = null) {
 }
 
 window.diagnoseStaffAuth = diagnoseStaffAuth;
-

@@ -9,19 +9,22 @@
 //    5. أو: يُطبَّق تلقائياً بعد 10 ثوانٍ بدون تدخّل
 // ============================================================
 
-const CACHE_VERSION = 'markaz-abdullah-awad-pwa-v17';
+const CACHE_VERSION = 'edarat-eldroos-pwa-v41';
 
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './user-management.js',
+  './firebase-sync.js',
+  './firebase-app-compat.js',
+  './firebase-firestore-compat.js',
   './archive_functions.js',
   './platform-subscriptions.js',
   './transfer-student.js',
   './code-generator.js',
   './grade-mapping.js',
-  './handouts-module.js',
   './manifest.webmanifest',
   './app-icon-192.png',
   './app-icon-512.png',
@@ -36,7 +39,9 @@ const EXTERNAL_LIBS = [
   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
   'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-  'https://cdn.jsdelivr.net/npm/chart.js'
+  'https://cdn.jsdelivr.net/npm/chart.js',
+  'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
 // ─── Install: تحميل كل ملفات الـ App Shell في الـ Cache ───
@@ -93,6 +98,22 @@ self.addEventListener('activate', (event) => {
 });
 
 // ─── Fetch: Cache-First للـ Shell، Network-First للباقي ───
+// ✅ إصلاح: "أوفلاين" على بعض الأجهزة لا يعني فشل fetch فوراً — أحياناً
+// الطلب يظل معلّقاً (hang) لثوانٍ طويلة قبل أن يفشل، وهو ما كان يُظهر
+// الشاشة الزرقاء (شاشة الـ splash) متجمّدة دون أن يكتمل تحميل app.js
+// وبالتالي لا يعمل تسجيل الدخول. نحدّد مهلة قصيرة للشبكة ثم نرجع للكاش فوراً.
+const NETWORK_TIMEOUT_MS = 3000;
+
+function fetchWithTimeout(request, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('network-timeout')), ms);
+    fetch(request, { cache: 'no-store' }).then(
+      (res) => { clearTimeout(timer); resolve(res); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
+
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE_VERSION);
   // ✅ إصلاح: تجاهل الـ query string (?v=N) عند المطابقة، لأن الملفات
@@ -103,11 +124,14 @@ async function cacheFirst(request) {
   const cached = await cache.match(request, { ignoreSearch: true });
   if (cached) return cached;
   try {
-    const fresh = await fetch(request, { cache: 'no-store' });
+    const fresh = await fetchWithTimeout(request, NETWORK_TIMEOUT_MS);
     if (fresh && fresh.ok) await cache.put(request, fresh.clone());
     return fresh;
   } catch (error) {
-    if (request.mode === 'navigate') return cache.match('./index.html');
+    if (request.mode === 'navigate') {
+      const shell = await cache.match('./index.html', { ignoreSearch: true });
+      if (shell) return shell;
+    }
     throw error;
   }
 }
@@ -115,14 +139,17 @@ async function cacheFirst(request) {
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_VERSION);
   try {
-    const fresh = await fetch(request, { cache: 'no-store' });
+    const fresh = await fetchWithTimeout(request, NETWORK_TIMEOUT_MS);
     if (fresh && fresh.ok) await cache.put(request, fresh.clone());
     return fresh;
   } catch (error) {
     // نفس إصلاح تجاهل الـ query string هنا كمان
     const cached = await cache.match(request, { ignoreSearch: true });
     if (cached) return cached;
-    if (request.mode === 'navigate') return cache.match('./index.html');
+    if (request.mode === 'navigate') {
+      const shell = await cache.match('./index.html', { ignoreSearch: true });
+      if (shell) return shell;
+    }
     throw error;
   }
 }
@@ -133,27 +160,14 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // الموارد الخارجية → Network-First مع Cache fallback
+  // الموارد الخارجية (CDN) → Network-First مع مهلة قصيرة + Cache fallback
   if (url.origin !== self.location.origin) {
     event.respondWith(networkFirst(request));
     return;
   }
 
-  // ملفات App Shell المحلية → Cache-First (يعمل فوراً offline)
-  const isShellFile = APP_SHELL.some((shellUrl) => {
-    const normalized = shellUrl.replace('./', '/');
-    return (
-      url.pathname === normalized ||
-      url.pathname === shellUrl ||
-      url.pathname.endsWith(shellUrl.replace('./', ''))
-    );
-  });
-
-  if (isShellFile || url.pathname === '/' || url.pathname === '/index.html') {
-    event.respondWith(cacheFirst(request));
-  } else {
-    event.respondWith(networkFirst(request));
-  }
+  // ✅ استخدام Network-First دائماً لملفات الموقع لضمان تحميل أحدث نسخة من الجافاسكربت والسحابة عند توفر النت
+  event.respondWith(networkFirst(request));
 });
 
 // ─── Messages من التطبيق ────────────────────────────────────
